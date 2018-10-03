@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/config/constants.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/logs/log-2018-10-01.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/static/view_top_bar.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/static/view_footer.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Driver.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/view_base.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_inbox_trip_request.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/menu/view_sys_menu.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/UserModel.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_preview_request.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/User.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_my_trip_requests.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/assets/vendor/daterange/daterangepicker.js</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/assets/css/style.sea.css</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_trip_request.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Api.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/static/view_modals.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_update_profile.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/config/config.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/static/view_header.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/system/core/Log.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/contents/view_login.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/config/autoload.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_request_trip.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Trip.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/TripsModel.php</file>
+        </group>
+    </open-files>
+</project-private>
