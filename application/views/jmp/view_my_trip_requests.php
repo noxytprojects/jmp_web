@@ -24,7 +24,7 @@
             <div class="col-lg-12">
                 <div class="card">
                     <div class="card-body no-padding">
-                        <table id="cds_acc_table" class="table table-striped" style="width: 100%">
+                        <table id="cds_acc_table" class="table table-striped" style="width: 100%;font-size: 13px;">
                             <thead>
                                 <tr>
                                     <th style="width: 10px;">No.</th>

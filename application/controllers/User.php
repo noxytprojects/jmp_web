@@ -156,7 +156,8 @@ class User extends CI_Controller {
                 'token' => sha1(rand(1111, 9999)),
                 'driver_details' => FALSE,
                 'role' => 'NONE',
-                'page' => ''
+                'page' => '',
+                'email' => ''
             ];
 
             $page = "";
@@ -172,6 +173,7 @@ class User extends CI_Controller {
                 $user['phone_number'] = $hod['dept_hod_phone'];
                 $user['full_name'] = $hod['dept_hod_full_name'];
                 $user['role'] = 'HOD';
+                $user['email'] = $hod['dept_hod_email'];
 
                 $page = "HOME";
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is HOD');
@@ -182,6 +184,7 @@ class User extends CI_Controller {
                 $user['phone_number'] = $lm['sec_tl_phone_number'];
                 $user['full_name'] = $lm['sec_tl_full_name'];
                 $user['role'] = 'LINE MANAGER';
+                $user['email'] = $lm['sec_tl_email'];
                 $page = "HOME";
 
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is Line Manager');
@@ -205,6 +208,7 @@ class User extends CI_Controller {
                 $user['phone_number'] = $driver['dp_phone_number'];
                 $user['full_name'] = $driver['dp_full_name'];
                 $user['driver_details'] = $driver_details;
+                $user['email'] = $driver['dp_email'];
                 $user['role'] = 'DRIVER';
 
                 $page = "HOME";

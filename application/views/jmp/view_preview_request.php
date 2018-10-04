@@ -12,7 +12,7 @@ if ($can_approve) {
     ?>
     <div id="approveRequest"  role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" class="modal fade text-left">
         <div role="document" class="modal-dialog">
-            <form id="approve_request_form" class="modal-content" action="<?php echo site_url('station/submitreleaseinstruction'); ?>">
+            <form id="approve_request_form" class="modal-content" action="<?php echo site_url('api/submitapproverequest/' . $trip['tr_id']); ?>">
                 <div class="modal-header">
                     <h4 id="exampleModalLabel" class="modal-title"> Approve Trip Request</h4>
                     <button type="button" data-dismiss="modal" aria-label="Close" class="close"><span aria-hidden="true">×</span></button>
@@ -20,9 +20,9 @@ if ($can_approve) {
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-lg-12">
-                            <div class="form-group" id="loading_date">
-                                <label>Approval Comment</label>
-                                <textarea placeholder="Enter the approval commnets"  class="form-control" name="approval_comment"></textarea>
+                            <div class="form-group" id="comment">
+                                <label>Approval Comment (Optional)</label>
+                                <textarea placeholder="Enter the approval commnets"  class="form-control" name="comment"></textarea>
                             </div>
                         </div>
                     </div>
@@ -37,7 +37,7 @@ if ($can_approve) {
     </div>
     <div id="disApproveRequest"  role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" class="modal fade text-left">
         <div role="document" class="modal-dialog">
-            <form id="disapprove_request_form" class="modal-content" action="<?php echo site_url('station/submitreleaseinstruction'); ?>">
+            <form id="disapprove_request_form" class="modal-content" action="<?php echo site_url('api/submitdisapproverequest/' . $trip['tr_id']); ?>">
                 <div class="modal-header">
                     <h4 id="exampleModalLabel" class="modal-title"> Disapprove Trip Request</h4>
                     <button type="button" data-dismiss="modal" aria-label="Close" class="close"><span aria-hidden="true">×</span></button>
@@ -45,9 +45,9 @@ if ($can_approve) {
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-lg-12">
-                            <div class="form-group" id="loading_date">
+                            <div class="form-group" id="dis_comment">
                                 <label>Disapproval Comment</label>
-                                <textarea placeholder="Enter the disapproval commnets"  class="form-control" name="approval_comment"></textarea>
+                                <textarea placeholder="Enter the disapproval commnets"  class="form-control" name="dis_comment"></textarea>
                             </div>
                         </div>
                     </div>
@@ -80,16 +80,33 @@ if ($can_approve) {
 
             <div class="col-lg-12">
                 <p>
-                    This trip request is in 
+                    The current approval status of this trip request is  
                     <?php
                     switch ($trip['tr_status']) {
                         case 'NEW':
                             echo '<span class="badge badge-info">NEW</span>';
                             break;
+                        case 'PENDING':
+                            echo '<span class="badge badge-danger">PENDING</span>';
+                            break;
+                        case 'COMPLETED':
+                            echo '<span class="badge badge-success">COMPLETED</span>';
+                            break;
+                        case 'PAUSED':
+                            echo '<span class="badge badge-secondary">PAUSED</span>';
+                            break;
+                        
+                        case 'DISAPPROVED':
+                            echo '<span class="badge badge-danger">DISAPPROVED</span>';
+                            break;
+                        
+                        case 'APPROVED':
+                            echo '<span class="badge badge-success">APPROVED</span>';
+                            break;
                         default:
                             break;
                     }
-                    ?> status
+                    ?>
                 </p>
                 <h5>Trip Details</h5>
                 <table class="table table-bordered table-sm" style="font-size: 13px;width: 100%">
@@ -213,7 +230,7 @@ if ($can_approve) {
                         <tr>
                             <td >Departure Location</td>
                             <td style="min-width:150px;"><strong><?php echo $trip['tr_departure_location']; ?></strong></td>
-                            <td>Final Destination Location<br/>Contact No</td>
+                            <td>Final Destination Location</td>
                             <td style="min-width:150px;"><strong><?php echo $trip['tr_destination_location']; ?></strong></td>
                         </tr>
                         <tr>
@@ -247,6 +264,8 @@ if ($can_approve) {
                                     <br/>
                                     <p class="text-center">Currently there is no comment added</p>
                                     <?php
+                                }else{
+                                    echo '<p style="padding:10px 0 0 10px;">' . nl2br($trip['ap_comments'])  .'</p>';
                                 }
                                 ?>
                             </td>
@@ -270,7 +289,7 @@ if ($can_approve) {
                     // Check if he can request approval
                     if ($is_my_application AND in_array(strtolower($trip['tr_status']), ['new', 'paused'])) {
                         ?>
-                        <a href="" class="btn btn-sm btn-outline-success"><i class="fa fa-send"></i>&nbsp;Request Approval</a>
+                        <a href="<?php echo site_url('trip/requestapproval/'. $trip['tr_id']); ?>" class="btn btn-sm btn-outline-success confirm" title="Are you sure you want to request approval for this trip?."><i class="fa fa-send"></i>&nbsp;Request Approval</a>
                         <?php
                     }
 

@@ -4,6 +4,7 @@ Class UserModel extends CI_Model {
 
     var $is_logged_in = false;
     var $ad_name = null;
+    var $email = null;
     var $full_name = null;
     var $driver_details = false;
     var $role = null;
@@ -15,6 +16,7 @@ Class UserModel extends CI_Model {
 
         if ($this->isLogedin()) {
             $this->ad_name = $this->session->userdata['logged_in']['ad_name'];
+            $this->email = $this->session->userdata['logged_in']['email'];
             $this->full_name = $this->session->userdata['logged_in']['full_name'];
             $this->driver_details = $this->session->userdata['logged_in']['driver_details'];
             $this->role = $this->session->userdata['logged_in']['role'];
@@ -24,9 +26,13 @@ Class UserModel extends CI_Model {
         }
     }
 
-    public function setSessMsg($msg, $type, $url) {
+    public function setSessMsg($msg, $type, $url = NULL) {
         $this->session->set_flashdata($type, $msg);
-        redirect($url);
+        
+        if(NULL !== $url){
+            redirect($url);
+        }
+        
     }
 
     public function getUserInfo($user, $type = null) {

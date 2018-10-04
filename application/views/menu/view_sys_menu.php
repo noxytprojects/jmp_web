@@ -28,16 +28,16 @@
             ?>
             <li class="<?php echo ($curr_menu == 'TRIP') ? "active" : "" ?>"><a href="#trip" aria-expanded="<?php echo ($curr_menu == 'TRIP') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-car"></i>Trip Request </a>
                 <ul id="trip" class="<?php echo ($curr_sub_menu == 'TRIP') ? "" : "collapse" ?> list-unstyled">
-                    <li><a href="<?php echo site_url('trip/requests'); ?>">All Trip Requests</a></li>
+                    <li><a href="<?php echo site_url('trip/requests'); ?>">Trip Requests</a></li>
                     <li><a href="<?php echo site_url('trip/inbox'); ?>">Incoming Request</a></li>
                     <li><a href="<?php echo site_url('trip/requesttrip');  ?>">Request Trip</a></li>
                     <li><a href="<?php echo site_url('trip/myrequests'); ?>">My Trip Requests</a></li>
                 </ul>
             </li>
             
-            <li class="<?php echo ($curr_menu == 'MANAGMENT') ? "active" : "" ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
-                <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGMENT') ? "" : "collapse" ?> list-unstyled">
-                    <li><a href="<?php  ?>">Departments</a></li>
+            <li class="<?php echo ($curr_menu == 'MANAGEMENT') ? "active" : "" ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGEMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
+                <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGEMENT') ? "" : "collapse" ?> list-unstyled">
+                    <li><a href="<?php echo site_url('management/departments') ?>">Departments</a></li>
                     <li><a href="<?php  ?>">Sections</a></li>
                     <li><a href="<?php  ?>">Administrators</a></li>
                 </ul>

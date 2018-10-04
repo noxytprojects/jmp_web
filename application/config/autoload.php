@@ -138,5 +138,6 @@ $autoload['model'] = [
     'UserModel' => 'usr',
     'DriverModel' => 'driver',
     'MaintenanceModel' => 'mnt',
-    'TripsModel' => 'trip'
+    'TripsModel' => 'trip',
+    'ApprovalModel' => 'approval'
 ];

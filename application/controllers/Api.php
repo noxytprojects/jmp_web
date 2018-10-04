@@ -39,6 +39,162 @@ class Api extends CI_Controller {
         die();
     }
 
+    public function submitApproveRequest() {
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: text/json');
+
+
+        // Check user session status and the platform used
+        if (!empty($_POST) && !$this->usr->is_logged_in) {
+            $this->usr->setSessMsg(MSG_EXPIRY_SESSION, 'error', 'user');
+        } elseif (empty($_POST)) {
+            $_POST = json_decode(file_get_contents('php://input'), true);
+            $trip_id = $this->input->post('trip_id');
+        } else {
+            $usn = $this->usr->ad_name;
+            $trip_id = $this->uri->segment(3);
+        }
+
+        $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $trip_id], 1);
+
+        if (!$trip) {
+            // trip request was not found so redirect back
+            cus_json_error('Trip request was not found or may have been removed from the system');
+        }
+
+        $validations = [
+                ['field' => 'comment', 'label' => 'Approval Comment', 'rules' => 'trim']
+        ];
+
+        $this->form_validation->set_rules($validations);
+
+        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Attempting to approve trip request');
+
+        if ($this->form_validation->run() == FALSE) {
+            // Invalid inputs
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed to approve trip request');
+            echo json_encode([
+                'status' => [
+                    'error' => TRUE,
+                    'error_type' => 'fields_error',
+                    "form_errors" => validation_errors_array()
+                ]
+            ]);
+
+            die();
+        } else {
+
+            $post_comment = $this->input->post('comment');
+            $comment = "";
+            $comment .= "APPROVED\n";
+            $comment .= !empty($post_comment) ? ($post_comment . "\n") : "";
+
+            $comment .= '<b>' . $this->usr->full_name . '</b>' . ' - ' . $this->usr->email . "\n" . date('Y-m-d H:i:s') . "\n";
+
+            if (!empty($trip['ap_comments'])) {
+                $comment .= "\n\n\n" . $trip['ap_comments'];
+            }
+
+            $approval_data = [
+                'ap_approval_time' => date('Y-m-d H:i:s'),
+                'ap_comments' => $comment,
+                'ap_status' => 'APPROVED'
+            ];
+
+            $res = $this->approval->updateApprovalStatus(['approval_data' => $approval_data, 'tr_data' => ['tr_status' => 'APPROVED'], 'tr_id' => $trip['tr_id'], 'ad_name' => $this->usr->ad_name]);
+
+            if ($res) {
+
+                $this->usr->setSessMsg('Trip request approved successfully', 'success');
+                $json = json_encode([
+                    'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('trip/previewrequest/' . $trip['tr_id'])]
+                ]);
+                echo $json;
+            } else {
+                cus_json_error('Approval status was not updated');
+            }
+        }
+    }
+
+    public function submitDisapproveRequest() {
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: text/json');
+
+
+        // Check user session status and the platform used
+        if (!empty($_POST) && !$this->usr->is_logged_in) {
+            $this->usr->setSessMsg(MSG_EXPIRY_SESSION, 'error', 'user');
+        } elseif (empty($_POST)) {
+            $_POST = json_decode(file_get_contents('php://input'), true);
+            $trip_id = $this->input->post('trip_id');
+        } else {
+            $usn = $this->usr->ad_name;
+            $trip_id = $this->uri->segment(3);
+        }
+
+        $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $trip_id], 1);
+
+        if (!$trip) {
+            // trip request was not found so redirect back
+            cus_json_error('Trip request was not found or may have been removed from the system');
+        }
+
+        $validations = [
+                ['field' => 'dis_comment', 'label' => 'Disapproval Comment', 'rules' => 'trim|required']
+        ];
+
+        $this->form_validation->set_rules($validations);
+
+        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Attempting to approve trip request');
+
+        if ($this->form_validation->run() == FALSE) {
+            // Invalid inputs
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Failed to approve trip request');
+            echo json_encode([
+                'status' => [
+                    'error' => TRUE,
+                    'error_type' => 'fields_error',
+                    "form_errors" => validation_errors_array()
+                ]
+            ]);
+
+            die();
+        } else {
+
+            $post_comment = $this->input->post('dis_comment');
+            $comment = "";
+            $comment .= "DISAPPROVED\n";
+            $comment .= !empty($post_comment) ? $post_comment . "\n" : "";
+
+            $comment .= '<b>' . $this->usr->full_name . '</b>' . ' - ' . $this->usr->email . "\n" . date('Y-m-d H:i:s') . "\n";
+
+            if (!empty($trip['ap_comments'])) {
+                $comment .= "\n\n\n" . $trip['ap_comments'];
+            }
+
+            $approval_data = [
+                'ap_approval_time' => date('Y-m-d H:i:s'),
+                'ap_comments' => $comment,
+                'ap_status' => 'DISAPPROVED'
+            ];
+
+            $res = $this->approval->updateApprovalStatus(['approval_data' => $approval_data, 'tr_data' => ['tr_status' => 'DISAPPROVED'], 'tr_id' => $trip['tr_id'], 'ad_name' => $this->usr->ad_name]);
+
+            if ($res) {
+
+                $this->usr->setSessMsg('Trip request disapproved successfully', 'success');
+                $json = json_encode([
+                    'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('trip/previewrequest/' . $trip['tr_id'])]
+                ]);
+                echo $json;
+            } else {
+                cus_json_error('Approval status was not updated');
+            }
+        }
+    }
+
     public function submitLogin() {
 
         header('Access-Control-Allow-Origin: *');
@@ -55,11 +211,11 @@ class Api extends CI_Controller {
 
         $usn = $this->input->post('usn');
 
-        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Attempting to login');
+        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Attempting to login');
 
         if ($this->form_validation->run() == FALSE) {
             // Invalid inputs
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Failed login attempt');
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed login attempt');
             echo json_encode([
                 'status' => [
                     'error' => TRUE,
@@ -96,7 +252,7 @@ class Api extends CI_Controller {
                 $user['role'] = 'HOD';
 
                 $page = "HOME";
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Logon user is HOD');
+                log_message(SYSTEM_LOG, $this->input->ip_address() .' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => '. $usn . ' - Logon user is HOD');
             } elseif ($lm) {
 
                 // If is line manager
@@ -106,7 +262,7 @@ class Api extends CI_Controller {
                 $user['role'] = 'LINE MANAGER';
                 $page = "HOME";
 
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Logon user is Line Manager');
+                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is Line Manager');
             } elseif ($driver) {
 
                 // If user is driver
@@ -130,13 +286,13 @@ class Api extends CI_Controller {
                 $user['role'] = 'DRIVER';
 
                 $page = "HOME";
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Logon user is Driver');
+                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is Driver');
             } else {
                 $page = 'UPDATE_DRIVER_PROFILE';
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Logon user is NEW so will have to update his/her driver profile');
+                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is NEW so will have to update his/her driver profile');
             }
 
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitLogin => ' . $usn . ' - Successfull login attempt');
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Successfull login attempt');
 
             $json = [
                 'status' => [
@@ -158,7 +314,7 @@ class Api extends CI_Controller {
 
         $_POST = json_decode(file_get_contents('php://input'), true);
 
-        log_message(SYSTEM_LOG, json_encode($_POST));
+        
 
         $ad_name = $this->input->post('ad_name');
 
@@ -185,8 +341,7 @@ class Api extends CI_Controller {
 
         $_POST = json_decode(file_get_contents('php://input'), true);
 
-        log_message(SYSTEM_LOG, 'Driver Details Data:' . json_encode($_POST));
-
+       
         $validations = [
                 ['field' => 'name', 'label' => 'driver full name', 'rules' => 'trim|required'],
                 ['field' => 'phone', 'label' => 'phone number', 'rules' => 'trim|required|numeric|callback_validateDriverPhoneNumber'],
@@ -201,11 +356,11 @@ class Api extends CI_Controller {
 
         $usn = $this->input->post('ad_name');
 
-        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Submitting drivers details');
+        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Submitting drivers details');
 
         if ($this->form_validation->run() == FALSE) {
             // Invalid inputs
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Failed to save driver details');
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed to save driver details');
             echo json_encode([
                 'status' => [
                     'error' => TRUE,
@@ -235,18 +390,18 @@ class Api extends CI_Controller {
 
             $data = ['driver_data' => $driver_data, 'ad_name' => $usn, 'timestamp' => $timestamp];
 
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Submitted data :: ' . json_encode($data));
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Submitted data :: ' . json_encode($data));
 
             $res = $this->driver->saveDriverDetails($data);
 
             if (!$res) {
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - driver profile was not updated');
+                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => '  . $usn . ' - driver profile was not updated');
                 cus_json_error('Nothing was updated.');
             }
 
             //Stuff went well lets get it.
 
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - updated the driver profile successfully');
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - updated the driver profile successfully');
 
 
             // Get the driver info
@@ -293,13 +448,14 @@ class Api extends CI_Controller {
 
         header('Access-Control-Allow-Origin: *');
         header('Content-type: text/json');
-        
+
         // If post variable is empty the request could be from mobile app
-        if(empty($_POST)){
+        if (empty($_POST)) {
             $_POST = json_decode(file_get_contents('php://input'), true);
+            $usn = $this->input->post('ad_name');
+        } else {
+            $usn = $this->usr->ad_name;
         }
-        
-        log_message(SYSTEM_LOG, 'Request Trip Data: ' . json_encode($_POST));
 
         $validations = [
                 ['field' => 'journey_purpose', 'label' => 'journey purpose', 'rules' => 'trim|required'],
@@ -322,13 +478,13 @@ class Api extends CI_Controller {
 
         $this->form_validation->set_rules($validations);
 
-        $usn = $this->input->post('ad_name');
 
-        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Submitting drivers details');
+
+        log_message(SYSTEM_LOG, $this->input->ip_address() .' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Submitting drivers details');
 
         if ($this->form_validation->run() == FALSE) {
             // Invalid inputs
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Failed to save driver details');
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed to save driver details');
             $json = json_encode([
                 'status' => [
                     'error' => TRUE,
@@ -337,7 +493,7 @@ class Api extends CI_Controller {
                 ]
             ]);
 
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Failure reasons : ' . $json);
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failure reasons : ' . $json);
             echo $json;
 
             die();
@@ -372,21 +528,19 @@ class Api extends CI_Controller {
                 'tr_ad_name' => $usn
             ];
 
-            $data =['trip_data' => $trip_data];
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Saving trip data : ' . json_encode($data));
-            
+            $data = ['trip_data' => $trip_data];
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Saving trip data : ' . json_encode($data));
+
             $res = $this->trip->saveTrip($data);
 
             if (!$res) {
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => api/submitDriverDetails => ' . $usn . ' - Trip data not savedpwd');
+                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Trip data not savedpwd');
                 // failed to save trip details
                 cus_json_error('Unable to save your trip details, Pleas try again.');
             }
-
-            
-            
+            $this->usr->setSessMsg('Trip request was added successfully. Cofirm the details and request for approval', 'success');
             $json = [
-                'status' => ['error' => FALSE,'redirect' => TRUE,'redirect_url' => site_url()]
+                'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('trip/previewrequest/' . $res)]
             ];
 
             echo json_encode($json);
@@ -525,7 +679,7 @@ class Api extends CI_Controller {
         $work_time = $this->input->post('work_finish_time');
 
         if (strtolower($work_time) == 'yes' AND empty($reason)) {
-            log_message(SYSTEM_LOG, 'ssss');
+           
             $this->form_validation->set_message('validateWorkFinishAfter17h00', 'You should enter the reason if work will finish after 17h00');
             return FALSE;
         }

@@ -48,7 +48,7 @@ class Trip extends CI_Controller {
                 'tr.tr_timestamp' => 'DESC'
             ],
             'cond' => NULL,
-            'where_in' => NULL
+            'where_in' => ['tr.tr_status' => ['COMPLETED', 'APPROVED']]
         ];
 
         $list = $this->trip->get_datatables_trips($datatables);
@@ -57,25 +57,13 @@ class Trip extends CI_Controller {
         foreach ($list as $a) {
             $no++;
             $row = [];
-            $status = "";
+            $status = cus_status_template($a->tr_status);
 
-            switch ($a->tr_status) {
-                case 'NEW':
-                    $status = '<h4><span class="badge badge-info">NEW</span></h4>';
-                    break;
-
-                case 'PENDING':
-                    $status = '<h4><span class="badge badge-danger">PENDING</span></h4>';
-                    break;
-
-                default:
-                    break;
-            }
             $links = '<div class="dropdown">
                         <button type="button" id="closeCard2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-info btn-sm"><i class="fa fa-ellipsis-v"></i></button>
                         <div aria-labelledby="closeCard2" class="dropdown-menu dropdown-menu-right has-shadow">
-                            <a href="' . site_url('trip/pdfpreviewtrip/' . $a->tr_id) . '" class="dropdown-item edit_user text-info request_form"> <i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;PDF Preview</a>
-                            <a href="' . site_url('trip/deleteattendee/' . $a->tr_id) . '" class="dropdown-item del_user text-danger confirm" title="delete this attendee"> <i class="fa fa-trash"></i>&nbsp;&nbsp;Delete Attendee</a>
+                            <a href="' . site_url('trip/pdfpreviewtrip/' . $a->tr_id) . '" class="dropdown-item edit_user text-info" target="_blank"> <i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;PDF Preview</a>
+                                <a href="' . site_url('trip/previewrequest/' . $a->tr_id) . '" class="dropdown-item text-success"> <i class="fa fa-check-circle-o"></i>&nbsp;&nbsp;Approval Satatus</a>
                         </div>
                     </div>';
 
@@ -152,24 +140,12 @@ class Trip extends CI_Controller {
         foreach ($list as $a) {
             $no++;
             $row = [];
-            $status = "";
+            $status = cus_status_template($a->tr_status);
 
-            switch ($a->tr_status) {
-                case 'NEW':
-                    $status = '<h4><span class="badge badge-info">NEW</span></h4>';
-                    break;
-
-                case 'PENDING':
-                    $status = '<h4><span class="badge badge-danger">PENDING</span></h4>';
-                    break;
-
-                default:
-                    break;
-            }
             $links = '<div class="dropdown">
                         <button type="button" id="closeCard2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-info btn-sm"><i class="fa fa-ellipsis-v"></i></button>
                         <div aria-labelledby="closeCard2" class="dropdown-menu dropdown-menu-right has-shadow">
-                            <a href="' . site_url('trip/pdfpreviewtrip/' . $a->tr_id) . '" class="dropdown-item edit_user text-info request_form"> <i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;PDF Preview</a>
+                            <a href="' . site_url('trip/pdfpreviewtrip/' . $a->tr_id) . '" class="dropdown-item edit_user text-info" target="_blank"> <i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;PDF Preview</a>
                                 <a href="' . site_url('trip/previewrequest/' . $a->tr_id) . '" class="dropdown-item text-success"> <i class="fa fa-check-circle-o"></i>&nbsp;&nbsp;Approval Satatus</a>
                         </div>
                     </div>';
@@ -199,7 +175,7 @@ class Trip extends CI_Controller {
     }
 
     public function ajaxMyTripRequests() {
-        
+
         if (!$this->usr->is_logged_in) {
             echo json_encode([
                 "draw" => $_POST['draw'],
@@ -247,31 +223,19 @@ class Trip extends CI_Controller {
         foreach ($list as $a) {
             $no++;
             $row = [];
-            $status = "";
+            $status = cus_status_template($a->tr_status);
 
-            switch ($a->tr_status) {
-                case 'NEW':
-                    $status = '<h4><span class="badge badge-info">NEW</span></h4>';
-                    break;
-
-                case 'PENDING':
-                    $status = '<h4><span class="badge badge-danger">PENDING</span></h4>';
-                    break;
-
-                default:
-                    break;
-            }
             $links = '<div class="dropdown">
                         <button type="button" id="closeCard2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-info btn-sm"><i class="fa fa-ellipsis-v"></i></button>
                         <div aria-labelledby="closeCard2" class="dropdown-menu dropdown-menu-right has-shadow">
-                            <a href="' . site_url('trip/pdfpreviewtrip/' . $a->tr_id) . '" class="dropdown-item edit_user text-info request_form"> <i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;PDF Preview</a>
+                            <a href="' . site_url('trip/pdfpreviewtrip/' . $a->tr_id) . '" class="dropdown-item edit_user text-info" target="_blank"> <i class="fa fa-file-pdf-o"></i>&nbsp;&nbsp;PDF Preview</a>
                                 <a href="' . site_url('trip/previewrequest/' . $a->tr_id) . '" class="dropdown-item text-success"> <i class="fa fa-check-circle-o"></i>&nbsp;&nbsp;Approval Satatus</a>
                         </div>
                     </div>';
 
             $row[] = $no;
             $row[] = '<div nowrap="nowrap">' . cus_nice_date($a->tr_timestamp) . '<div>';
-           // $row[] = '<div nowrap="nowrap"><b>' . ucwords($a->dp_full_name) . '</b><br/>' . $a->dp_email . '</div>';
+            // $row[] = '<div nowrap="nowrap"><b>' . ucwords($a->dp_full_name) . '</b><br/>' . $a->dp_email . '</div>';
             $row[] = '<div nowrap="nowrap"><b>' . $a->tr_vehicle_type . '</b><br/><i>' . $a->tr_vehicle_reg_no . '</i></div>';
             $row[] = '<div nowrap="nowrap">' . cus_nice_timestamp($a->tr_dispatch_time) . '<br/>' . cus_nice_timestamp($a->tr_arraival_time) . '</div>';
             $row[] = '<div nowrap="nowrap">' . $a->tr_destination_location . '<div>';
@@ -371,18 +335,76 @@ class Trip extends CI_Controller {
 
         $this->load->view('view_base', $data);
     }
-    
+
+    public function requestApproval() {
+
+        // Check if user has logged in 
+        if (!$this->usr->is_logged_in) {
+            $this->usr->setSessMsg('Your session may have been expired. Loging in is requires', 'error', 'user');
+        }
+
+        $trip_id = $this->uri->segment(3);
+
+        $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $trip_id], 1);
+
+        if (!$trip) {
+            // trip request was not found so redirect back
+            $this->usr->setSessMsg('Trip request was not found or may have been removed from the system', 'error', site_url('trip/requests'));
+        }
+
+        if (!in_array(strtolower($trip['tr_status']), ['new', 'paused'])) {
+            $this->usr->setSessMsg('Trip request is not in the right status to request for approval', 'error', 'trip/previewrequest/' . $trip['tr_id']);
+        }
+
+        $timestamp = date('Y-m-d H:i:s');
+
+        if (empty($trip['ap_tr_id'])) {
+            //if request has no approval added yet
+            $approval_data = [
+                'ap_tr_id' => $trip['tr_id'],
+                'ap_ad_name' => $trip['sec_tl_ad_name'],
+                'ap_sent_time' => $timestamp,
+                'ap_status' => 'PENDING',
+                'ap_insert_time' => $timestamp
+            ];
+            $res = $this->approval->saveApprovalStatus([
+                'approval_data' => $approval_data,
+                'tr_data' => ['tr_status' => 'PENDING'],
+                'tr_id' => $trip['tr_id']
+            ]);
+        } else {
+            //if request has na approval already
+            $approval_data = [
+                'ap_status' => 'PENDING',
+                'ap_sent_time' => $timestamp
+            ];
+
+            $res = $this->approval->updateApprovalStatus([
+                'approval_data' => $approval_data,
+                'tr_id' => $trip['trip_id'],
+                'ad_name' => $trip['ap_ad_name'],
+                'tr_data' => ['tr_status' => 'PENDING']
+            ]);
+        }
+
+        if ($res) {
+            $this->usr->setSessMsg('Approval request sent successfully.', 'sucess', 'trip/previewrequest/' . $trip['tr_id']);
+        } else {
+            $this->usr->setSessMsg('Approval request was not sent.', 'error', 'trip/previewrequest/' . $trip['tr_id']);
+        }
+    }
+
     public function previewRequest() {
         // Check if user has logged in 
         if (!$this->usr->is_logged_in) {
             $this->usr->setSessMsg('Your session may have been expired. Loging in is requires', 'error', 'user');
         }
-        
+
         $trip_id = $this->uri->segment(3);
-        
+
         $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $trip_id], 1);
-        
-        if(!$trip){
+
+        if (!$trip) {
             // trip request was not found so redirect back
             $this->usr->setSessMsg('Trip request was not found or may have been removed from the system', 'error', site_url('trip/requests'));
         }
@@ -394,15 +416,55 @@ class Trip extends CI_Controller {
             'content_data' => [
                 'module_name' => 'Trip Approval Satatus',
                 'trip' => $trip,
-                'is_my_application' => $this->usr->ad_name == $trip['tr_ad_name']? TRUE : FALSE,
+                'is_my_application' => $this->usr->ad_name == $trip['tr_ad_name'] ? TRUE : FALSE,
                 'can_approve' => $this->usr->ad_name == $trip['ap_ad_name'] ? TRUE : FALSE
-                ],
+            ],
             'header_data' => [],
             'footer_data' => [],
             'top_bar_data' => []
         ];
 
         $this->load->view('view_base', $data);
+    }
+
+    public function pdfPreviewTrip() {
+ 
+        ini_set('memory_limit', '50M'); // boost the memory limit if it's low ;)
+        // Check if user has not logged in and redirect to login page
+        if (!$this->usr->is_logged_in) {
+            $this->usr->setSessMsg("Your session may have been expired. Login is required.", 'error', 'user');
+        }
+
+
+        $trip_id = $this->uri->segment(3);
+
+        $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $trip_id], 1);
+
+        if (!$trip) {
+            // trip request was not found so redirect back
+            $this->usr->setSessMsg('Trip request was not found or may have been removed from the system', 'error', site_url('trip/requests'));
+        }
+
+        $time = date('Y-m-d H:i:s');
+        $data = [
+            'trip' => $trip
+        ];
+
+        $html = $this->load->view('export/view_export_pdf_trip_request', $data, true); // render the view into HTML
+
+        $this->load->library('pdf');
+
+        $pdf = $this->pdf->load('c', 'A4');
+
+        //$pdf->SetWatermarkImage(base_url(). 'assets/img/approved.png');
+        //$pdf->showWatermarkImage = true;
+
+        $pdf->SetFooter(SYSTEM_NAME . ' - Printed by ' . ucwords($this->usr->full_name) . '<br/>' . cus_nice_timestamp($time) . '|{PAGENO}|Powered By Noxyt Software Solution <br/>www.noxyt.com'); // Add a footer for good measure ;)
+
+        $pdf->WriteHTML($html); // write the HTML into the PDF
+
+        $pdf->Output();
+        return;
     }
 
 }

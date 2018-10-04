@@ -97,3 +97,4 @@ define('DESIGNED_BY', 'Noxyt Software Solution');
 define('DESIGNED_BY_URL', 'http://noxyt.com');
 define('COPYRIGHT','Noxyt');
 define('COPYRIGHT_URL','https://noxyt.com');
+define('MSG_EXPIRY_SESSION', 'Your session might have been expired, Login is required');

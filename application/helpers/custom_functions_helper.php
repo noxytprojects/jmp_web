@@ -147,10 +147,43 @@ function cus_json_error($msg) {
     die();
 }
 
-function cus_preciding_zeros($number){
+function cus_preciding_zeros($number) {
     return str_pad($number, PRECIDING_ZEROZ, '0', STR_PAD_LEFT);
 }
 
-function cus_phone_with_255($phone_number, $prefix = '255'){
+function cus_phone_with_255($phone_number, $prefix = '255') {
     return $prefix . substr($phone_number, -9);
+}
+
+function cus_status_template($status) {
+
+    $status_template = "";
+
+    switch ($status) {
+        case 'NEW':
+            $status_template = '<h4><span class="badge badge-info">NEW</span></h4>';
+            break;
+
+        case 'PENDING':
+            $status_template = '<h4><span class="badge badge-danger">PENDING</span></h4>';
+            break;
+
+        case 'COMPLETED':
+            $status_template = '<h4><span class="badge badge-info">COMPLETED</span></h4>';
+            break;
+
+        case 'APPROVED':
+            $status_template = '<h4><span class="badge badge-success">APPROVED</span></h4>';
+            break;
+
+        case 'PAUSED':
+            $status_template = '<h4><span class="badge badge-secondary">PAUSED</span></h4>';
+            break;
+
+
+        default:
+            break;
+    }
+    
+    return $status_template;
 }
