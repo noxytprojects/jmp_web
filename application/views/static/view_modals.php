@@ -13,7 +13,7 @@ if (in_array('modal_template', $modals)) {
     $(document).ready(function () {
 
         // Submit ajax form button clicked
-        $(document).on('submit', '#edit_department_form,#add_department_form,#approve_request_form,#disapprove_request_form,#request_trip_form', function (e) {
+        $(document).on('submit', '#edit_section_form,#add_section_form,#edit_department_form,#add_department_form,#approve_request_form,#disapprove_request_form,#request_trip_form', function (e) {
             e.preventDefault();
             var post_data = $(this).serializeArray();
             submitAjaxForm(post_data, $(this).attr('action'));
@@ -63,14 +63,26 @@ if (in_array('modal_template', $modals)) {
                             switch (data.status.form_type) {
 
                                 case 'editDepartment':
-                                  
+
                                     $('input[name=edit_dept_name]').val(data.dept.dept_name);
                                     $('input[name=edit_hod_full_name]').val(data.dept.dept_hod_full_name);
                                     $('input[name=edit_hod_email]').val(data.dept.dept_hod_email);
                                     $('input[name=edit_hod_phone]').val(data.dept.dept_hod_phone);
                                     $('input[name=edit_hod_ad_name]').val(data.dept.dept_hod_ad_name);
-                                    
+
                                     $('#edit_department_form').attr('action', data.status.form_url);
+                                    break;
+
+                                case 'editSection':
+
+                                    $('input[name=edit_sec_name]').val(data.section.sec_name);
+                                    $('select[name=edit_sec_dept]').val(data.section.sec_dept_id).trigger('change');
+                                    $('input[name=edit_tl_full_name]').val(data.section.sec_tl_full_name);
+                                    $('input[name=edit_tl_email]').val(data.section.sec_tl_email);
+                                    $('input[name=edit_tl_phone]').val(data.section.sec_tl_phone_number);
+                                    $('input[name=edit_tl_ad_name]').val(data.section.sec_tl_ad_name);
+
+                                    $('#edit_section_form').attr('action', data.status.form_url);
                                     break;
 
                             }

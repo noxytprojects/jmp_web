@@ -35,10 +35,10 @@
                 </ul>
             </li>
             
-            <li class="<?php echo ($curr_menu == 'MANAGEMENT') ? "active" : "" ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGEMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
-                <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGEMENT') ? "" : "collapse" ?> list-unstyled">
-                    <li><a href="<?php echo site_url('management/departments') ?>">Departments</a></li>
-                    <li><a href="<?php  ?>">Sections</a></li>
+            <li class="<?php echo ($curr_menu == 'MANAGEMENT') ? "active" : ""; ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGEMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
+                <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGEMENT') ? "" : "collapse"; ?> list-unstyled">
+                    <li><a href="<?php echo site_url('management/departments'); ?>">Departments</a></li>
+                    <li><a href="<?php echo site_url('management/sections'); ?>">Sections</a></li>
                     <li><a href="<?php  ?>">Administrators</a></li>
                 </ul>
             </li>

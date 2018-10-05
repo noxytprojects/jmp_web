@@ -53,7 +53,7 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
-        
+
         $('#cds_acc_table').DataTable({
             "aaSorting": [],
             responsive: true,
@@ -82,11 +82,16 @@
                 {responsivePriority: 2, targets: -1},
                 {responsivePriority: 2, targets: -2},
                 {
-                    "targets": [0,2], //first column / numbering column
+                    "targets": [0, 2], //first column / numbering column
                     "orderable": false, //set not orderable
                 },
             ]
         });
+
+        $(document).on('change','input[name=work_finish_time]',function(){
+            alert();
+        });
+
 
     });
 

@@ -56,7 +56,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" data-dismiss="modal" class="btn btn-secondary pull-left">Close</button>
-                    <button type="submit" class="btn btn-success"><i class="fa fa-check-circle-o"></i>&nbsp;Approve</button>
+                    <button type="submit" class="btn btn-success"><i class="fa fa-plus-circle"></i>&nbsp;Add</button>
                 </div>
             </form>
         </div>
@@ -112,7 +112,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" data-dismiss="modal" class="btn btn-secondary pull-left">Close</button>
-                    <button type="submit" class="btn btn-success"><i class="fa fa-check-circle-o"></i>&nbsp;Approve</button>
+                    <button type="submit" class="btn btn-success"><i class="fa fa-save"></i>&nbsp;Save</button>
                 </div>
             </form>
         </div>

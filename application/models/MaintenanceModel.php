@@ -7,7 +7,7 @@ Class MaintenanceModel extends CI_Model {
         parent::__construct();
     }
     
-    // For ajax calls
+    // For depts ajax calls
     private function _select_depts($data) {
         
         $this->db->select($data['select_columns'])
@@ -71,6 +71,77 @@ Class MaintenanceModel extends CI_Model {
 
     public function count_all_depts($data) {
         $this->_select_depts($data);
+        return $this->db->count_all_results();
+    }
+    
+    
+    
+    // For sections ajax calls
+    
+    private function _select_sections($data) {
+        
+        $this->db->select($data['select_columns'])
+                ->from('section sec')
+                ->join('department dept','dept.dept_id = sec.sec_dept_id');
+        
+        if ($data['where_in'] != NULL) {
+            foreach ($data['where_in'] as $key => $wn) {
+                $this->db->where_in($key, $wn);
+            }
+        }
+        
+        if(null !== $data['cond']){
+            $this->db->where($data['cond']);
+        }
+        
+    }
+
+    private function _get_datatables_sections($data) {
+        
+        $this->_select_sections($data);
+        
+        $i = 0;
+        foreach ($data['search_columns'] as $item) { // loop column 
+            if ($_POST['search']['value']) { // if datatable send POST for search
+                if ($i === 0) { // first loop
+                    $this->db->group_start(); // open bracket. query Where with OR clause better with bracket. because maybe can combine with other WHERE with AND.
+                    $this->db->like($item, $_POST['search']['value']);
+                } else {
+                    $this->db->or_like($item, $_POST['search']['value']);
+                }
+
+                if (count($data['search_columns']) - 1 == $i) //last loop
+                    $this->db->group_end(); //close bracket
+            }
+            $i++;
+        }
+
+        if (isset($_POST['order'])) { // here order processing
+            $this->db->order_by($data['order_columns'][$_POST['order']['0']['column']], $_POST['order']['0']['dir']);
+        } else if (isset($data['default_order_column'])) {
+            $order = $data['default_order_column'];
+            $this->db->order_by(key($order), $order[key($order)]);
+        }
+    }
+
+    function get_datatables_sections($data) {
+
+        $this->_get_datatables_sections($data);
+        if ($_POST['length'] != -1)
+            $this->db->limit($_POST['length'], $_POST['start']);
+
+        $query = $this->db->get();
+        return $query->result();
+    }
+
+    function count_filtered_sections($data) {
+        $this->_get_datatables_sections($data);
+        $query = $this->db->get();
+        return $query->num_rows();
+    }
+
+    public function count_all_sections($data) {
+        $this->_select_sections($data);
         return $this->db->count_all_results();
     }
     
@@ -156,13 +227,37 @@ Class MaintenanceModel extends CI_Model {
         }
     }
     
+    public function saveSection($data) {
+        $this->db->trans_start();
+        $this->db->insert('section', $data['sec_data']);
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() == false) {
+
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            $this->db->trans_commit();
+            return true;
+        }
+    }
+    
     public function deleteDept($dept_id) {
         $this->db->where('dept_id',$dept_id)->delete('department');
         return $this->db->affected_rows();
     }
     
+    public function deleteSection($sec_id) {
+        $this->db->where('sec_id',$sec_id)->delete('section');
+        return $this->db->affected_rows();
+    }
     public function saveEditDepartment($data,$dept_id) {
         $this->db->where('dept_id',$dept_id)->update('department',$data['dept_data']);
+        return $this->db->affected_rows();
+    }
+    
+    public function saveEditSection($data,$sec_id) {
+        $this->db->where('sec_id',$sec_id)->update('section',$data['sec_data']);
         return $this->db->affected_rows();
     }
 }
