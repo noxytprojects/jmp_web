@@ -348,7 +348,11 @@ class Api extends CI_Controller {
 
         $cols = [
             'dp.dp_status',
+            'dp.dp_ad_name',
+            'dp.dp_email',
             'dp.dp_full_name',
+            'dp.dp_medical_by_osha',
+            'dp.dp_medical_date',
             'dp.dp_status',
             'dp.dp_phone_number',
             'dp.dp_license_number',
@@ -424,9 +428,17 @@ class Api extends CI_Controller {
         $ad_name = $this->input->post('ad_name');
         $trip_id = $this->input->post('tr_id');
 
+        $request = $this->getRequestAndApprovalDetails($trip_id, $ad_name);
+
+        if (!$request) {
+            cus_json_error('Trip request was not found or may have been removed from the system');
+        }
+
         $json = json_encode([
             'status' => ['error' => FALSE],
-            'request' => $this->getRequestAndApprovalDetails($trip_id, $ad_name)
+            'request' => $request,
+            'license_attachments' => $this->utl->getAttachments(['att.att_name', 'att.att_id', 'att.att_status', 'att_type'], ['att.att_ref' => $request['tr_ad_name'], 'att.att_type' => 'DRIVER_LICENSE', 'att.att_status' => '01']),
+            'medical_attachments' => $this->utl->getAttachments(['att.att_name', 'att.att_id', 'att.att_status', 'att_type'], ['att.att_ref' => $request['tr_ad_name'], 'att.att_type' => 'MEDICAL_FITNESS', 'att.att_status' => '1'])
         ]);
 
         echo $json;
@@ -564,6 +576,50 @@ class Api extends CI_Controller {
         die();
     }
 
+    public function submitApproveDriverProfile() {
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: text/json');
+        // Check user session status and the platform used
+        if (!empty($_POST) && !$this->usr->is_logged_in) {
+            $this->usr->setSessMsg(MSG_EXPIRY_SESSION, 'error', 'user');
+        } elseif (empty($_POST)) {
+            $_POST = json_decode(file_get_contents('php://input'), true);
+            $usn = $this->input->post('ad_name');
+        } else {
+            $usn = $this->usr->ad_name;
+        }
+        
+        $driver_ad_name = $this->input->post('driver_ad_name');;
+        
+        $driver = $this->driver->getDriverProfiles(NULL, ['dp_ad_name' => $driver_ad_name], 1);
+        
+        if(!$driver){
+            cus_json_error('Driver profile was not found or it may have been removed from the system');
+        }
+        
+        if(strtolower($usn) != $driver['dp_ao_ad_name']){
+            cus_json_error('Access denied');
+        }
+        
+        if(in_array(strtolower($driver['dp_status']) , ['APPROVED'])){
+            cus_json_error('Driver profile is alread approved');
+        }
+        
+        
+        $res = $this->driver->updateDriverDetails(['driver_data' => ['dp_status' => 'APPROVED']], $driver['dp_ad_name']);
+        
+        if(!$res){
+            cus_json_error("Nothing was updated");
+        }
+        
+        
+        echo json_encode(['status' => ['error' => FALSE]]);
+        
+        
+        
+    }
+
     public function submitApproveRequest() {
 
         header('Access-Control-Allow-Origin: *');
@@ -583,17 +639,17 @@ class Api extends CI_Controller {
         }
 
         $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $trip_id], 1);
-        
-        
+
+
 
         if (!$trip) {
             // trip request was not found so redirect back
             cus_json_error('Trip request was not found or may have been removed from the system');
         }
-        
+
         $approver = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $usn], 1);
-        
-        if(!$approver){
+
+        if (!$approver) {
             cus_json_error('Access denied.');
         }
 
@@ -692,13 +748,13 @@ class Api extends CI_Controller {
             cus_json_error('Trip request was not found or may have been removed from the system');
         }
 
-        
+
         $approver = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $usn], 1);
-        
-        if(!$approver){
+
+        if (!$approver) {
             cus_json_error('Access denied.');
         }
-        
+
         $validations = [
                 ['field' => $field, 'label' => 'Disapproval Comment', 'rules' => 'trim|required']
         ];

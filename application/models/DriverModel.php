@@ -83,5 +83,24 @@ Class DriverModel extends CI_Model {
             return true;
         }
     }
+    
+    
+    public function updateDriverDetails($data,$driver_ad_name) {
+        
+        $this->db->trans_start();
+
+        $this->db->where('dp_ad_name',$driver_ad_name)->update('drivers_profile', $data['driver_data']);
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() == false) {
+
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            $this->db->trans_commit();
+            return true;
+        }
+        
+    }
 
 }
