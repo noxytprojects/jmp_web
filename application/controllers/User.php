@@ -16,7 +16,7 @@ class User extends CI_Controller {
 
         // Check if user has already logged in and redirect to dashboard
         if ($this->usr->isLogedin()) {
-            redirect('user/dashboard');
+            redirect('trpi/requests');
         }
 
 
@@ -162,12 +162,26 @@ class User extends CI_Controller {
 
             $page = "";
 
+            $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $usn], 1);
+
             $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_ad_name' => $usn], 1);
             $hod = $this->mnt->getDepartments(NULL, ['dept_hod_ad_name' => $usn], 1);
             $lm = $this->mnt->getSections(NULL, ['sec_tl_ad_name' => $usn], 1);
 
 
-            if ($hod) {
+            if ($manager) {
+                // if is Manager
+                $user['ad_name'] = $manager['ao_ad_name'];
+                $user['phone_number'] = $manager['ao_phone_number'];
+                $user['full_name'] = $manager['ao_full_name'];
+                $user['role'] = 'LINE MANAGER';
+                $user['email'] = $manager['ao_email'];
+
+                $page = "HOME";
+                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is Line Manager');
+            
+                
+            } elseif ($hod) {
                 // if is HOD
                 $user['ad_name'] = $hod['dept_hod_ad_name'];
                 $user['phone_number'] = $hod['dept_hod_phone'];
@@ -214,10 +228,11 @@ class User extends CI_Controller {
                 $page = "HOME";
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is Driver');
             } else {
+                $user['role'] = 'DRIVER';
                 $page = 'UPDATE_DRIVER_PROFILE';
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is NEW so will have to update his/her driver profile');
             }
-            
+
             $user['page'] = $page;
 
             $this->session->set_userdata([

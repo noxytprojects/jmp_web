@@ -55,6 +55,15 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-6 col-sm-12 hide" id="reason">
+                            <div class="form-group" id="reason_finish_after_17">
+                                <label>Reasons if work will finish at or After 17hr00</label>
+                                <textarea placeholder="Enter the reason if work will finish at or After 17hr00" class="form-control" name="reason_finish_after_17"></textarea>
+                            </div>
+                        </div>
+
+                        <!--
                         <div class="col-md-6 col-sm-12">
                             <div class="form-group" id="medical_by_osha">
                                 <label>Driver Medical Fitness Done By OSHA</label>
@@ -68,6 +77,7 @@
                                 </div>
                             </div>
                         </div>
+                        -->
 
                     </div>
                     <br/>
@@ -214,16 +224,48 @@
                             <div class="form-group" id="file">
                                 <label>Attach Vehicle Prestart Check List Form </label>
                                 <div>
-                                    <div class="dropzone"  id="uploadcds">
+                                    <div class="dropzone"  id="uploadfile">
+                                        <?php
+                                        if ($attachments) {
+
+
+                                            foreach ($attachments as $f) {
+
+                                                if ($f['att_status'] == '0') {
+                                                    ?>
+                                                    <div class="dz-preview dz-file-preview dz-processing dz-success dz-complete"> 
+                                                        <div class="dz-image"><img data-dz-thumbnail="" alt="<?php echo $f['att_name']; ?>" src="<?php echo base_url(); //echo base_url() . 'uploads/' . $hall['hall_admin_id'] . '/thumb_square_' . $f['temp_att_name']                         ?>assets/images/placeholderfilejpeg.png"></div>
+
+                                                        <div class="dz-details">    
+                                                            <div class="dz-size"><span data-dz-size=""><strong><i class="icon-file"></i></strong></span></div>  
+                                                            <div class="dz-filename"><span data-dz-name=""><?php echo $f['att_name']; ?></span></div>
+                                                        </div>  
+
+                                                        <div class="dz-progress">
+                                                            <span class="dz-upload" data-dz-uploadprogress="" style="width: 100%;"></span>
+                                                        </div>
+
+                                                        <div class="dz-error-message">
+                                                            <span data-dz-errormessage=""></span>
+                                                        </div>  
+                                                        <div class="dz-success-mark">    
+
+                                                        </div>
+
+                                                        <a class="removetempfile" href="<?php echo site_url('utility/removeupload/' . $f['att_id']) ?>/TRIP_REQUEST" style="display:block;text-align:center;cursor:pointer;position: absolute;top: -10px;z-index: 100;right: -10px;background: #f1f1f1;padding: 5px 10px;border-radius: 100%;"><i class="fa fa-trash text-danger"></i></a>
+
+                                                    </div>
+                                                    <?php
+                                                }
+                                            }
+                                        }
+                                        ?>
 
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-
-
                     <div class="modal-footer">
                         <button type="submit" class="btn btn-success"><i class="fa fa-save"></i>&nbsp;Save Request</button>
                     </div>
@@ -238,19 +280,20 @@
 <script type="text/javascript">
 
     Dropzone.autoDiscover = false;
-    
+
     $(document).ready(function () {
-        
+
         $('select[name=medical_by_osha]').select2({placeholder: 'Select YES or NO'});
         $('.remove_row').click(function () {
             $(this).parents('.p').remove();
         });
-        
-        
-        var myDropzone = new Dropzone('div#uploadcds', {url: '<?php echo site_url('utility/upload/IMPORT'); ?>',
+
+
+        var myDropzone = new Dropzone('div#uploadfile', {url: '<?php echo site_url('api/upload/TRIP_REQUEST'); ?>',
             parallelUploads: 100,
-            maxFiles: 1,
+            maxFiles: 3,
         });
+
 
         //        Drop zone on error
         myDropzone.on("error", function (file, message, xhr) {
@@ -294,7 +337,7 @@
                 $.ajax({
 
                     type: "get",
-                    url: "<?php echo base_url(); ?>index.php/utility/removeimport/" + message.filename + '/IMPORT',
+                    url: "<?php echo base_url(); ?>index.php/utility/removeupload/" + message.att_id + '/' + message.att_type,
                     success: function (data)
                     {
 
@@ -327,11 +370,21 @@
 
             });
         });
-        
-        
-        
+
+
+        $(document).on('change', 'input[type=radio][name=work_finish_time]', function () {
+
+            if (this.value == 'YES') {
+                $('#reason').removeClass('hide');
+            } else if (this.value == 'NO') {
+                $('#reason').addClass('hide');
+            }
+
+        });
+
+
     });
-    
-    
-    
+
+
+
 </script>

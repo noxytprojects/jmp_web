@@ -88,11 +88,6 @@
             ]
         });
 
-        $(document).on('change','input[name=work_finish_time]',function(){
-            alert();
-        });
-
-
     });
 
 </script>

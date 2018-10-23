@@ -30,6 +30,7 @@ Class DriverModel extends CI_Model {
 
         $res = $this->db->from('drivers_profile dp')
                 ->join('department dept','dept.dept_id = dp.dp_dept_id','INNER')
+                ->join('approval_officials ao','ao.ao_ad_name = dp.dp_ao_ad_name','INNER')
                 ->join('section sec','sec.sec_id = dp.dp_section_id','INNER')->get();
         
 
@@ -55,6 +56,20 @@ Class DriverModel extends CI_Model {
             $data['driver_data']['dp_ad_name'] = $data['ad_name'];
             $data['driver_data']['dp_created_time'] = $data['timestamp'];
             $this->db->insert('drivers_profile', $data['driver_data']);
+        }
+        
+        
+        // Set new licence attachment status to 1 if exist and delete ther old one
+        if($data['license_attachments']){
+            $this->db->where(['att_ref' => $data['ad_name'],'att_status' => '1','att_type' =>'DRIVER_LICENSE'])->delete('attachment');
+            $this->db->where(['att_ref' => $data['ad_name'],'att_status' => '0','att_type' =>'DRIVER_LICENSE'])->update('attachment',['att_status' => 1]);
+        }
+        
+        
+        // Set new edical attachment status to 1 if exist and delete ther old one
+        if($data['medical_attachments']){
+            $this->db->where(['att_ref' => $data['ad_name'],'att_status' => '1','att_type' =>'MEDICAL_FITNESS'])->delete('attachment');
+            $this->db->where(['att_ref' => $data['ad_name'],'att_status' => '0','att_type' =>'MEDICAL_FITNESS'])->update('attachment',['att_status' => 1]);
         }
         
         $this->db->trans_complete();

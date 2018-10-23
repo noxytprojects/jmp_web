@@ -71,7 +71,7 @@ if ($can_approve) {
         <div class="row">
             <div class="col-lg-12">
                 <div class="pull-right" role="group" aria-label="Basic example">
-                    <a href="<?php echo site_url('trip/requesttrip') ?>" class="btn btn-secondary btn-sm"><i class="fa fa-file-pdf-o"></i>&nbsp;PDF Preview</a>
+                    <a href="<?php echo site_url('trip/pdfpreviewtrip/' . $trip['tr_id']) ?>" target="_blank" class="btn btn-secondary btn-sm"><i class="fa fa-file-pdf-o"></i>&nbsp;PDF Preview</a>
                 </div>
             </div>
         </div>
@@ -95,11 +95,11 @@ if ($can_approve) {
                         case 'PAUSED':
                             echo '<span class="badge badge-secondary">PAUSED</span>';
                             break;
-                        
+
                         case 'DISAPPROVED':
                             echo '<span class="badge badge-danger">DISAPPROVED</span>';
                             break;
-                        
+
                         case 'APPROVED':
                             echo '<span class="badge badge-success">APPROVED</span>';
                             break;
@@ -156,7 +156,7 @@ if ($can_approve) {
                             <td style="min-width:20px;"><strong><?php echo $trip['tr_distance']; ?>&nbsp;KM</strong></td>
                         </tr>
                         <tr>
-                            <td colspan="3">Driver medical fitness assessment by OSHA?</td>
+                            <td colspan="3">Driver medical fitness assessment done by OSHA?</td>
                             <td style="min-width:20px;"><strong><?php echo $trip['tr_medical_by_osha']; ?></strong></td>
                         </tr>
 
@@ -245,6 +245,13 @@ if ($can_approve) {
 
             <div class="col-lg-12">
                 <h5>Attachments</h5>
+                <?php
+                $i = 1;
+                foreach ($attachments as $key => $f) {
+                    echo '<div><a href="' . base_url() . 'uploads/request/' . $f['att_name'] . '" target="_blank" title="Click to open file.">Request attachment ' . ($i) . '</a></div>';
+                    $i++;
+                }
+                ?>
                 <br/>
             </div>
 
@@ -264,8 +271,8 @@ if ($can_approve) {
                                     <br/>
                                     <p class="text-center">Currently there is no comment added</p>
                                     <?php
-                                }else{
-                                    echo '<p style="padding:10px 0 0 10px;">' . nl2br($trip['ap_comments'])  .'</p>';
+                                } else {
+                                    echo '<p style="padding:10px 0 0 10px;">' . nl2br($trip['ap_comments']) . '</p>';
                                 }
                                 ?>
                             </td>
@@ -279,17 +286,17 @@ if ($can_approve) {
             <div class="col-lg-12">
                 <div class="modal-footer">
                     <?php
-                    // Check if he can edit
+// Check if he can edit
                     if ($is_my_application AND in_array(strtolower($trip['tr_status']), ['pending', 'new'])) {
                         ?>
-                        <a  href="" class="btn btn-sm btn-outline-info pull-left"><i class="fa fa-edit"></i>&nbsp;Edit Request</a>
+                        <a  href="<?php echo site_url('trip/edittriprequest/' . $trip['tr_id']); ?>" class="btn btn-sm btn-outline-info pull-left"><i class="fa fa-edit"></i>&nbsp;Edit Request</a>
                         <?php
                     }
 
                     // Check if he can request approval
                     if ($is_my_application AND in_array(strtolower($trip['tr_status']), ['new', 'paused'])) {
                         ?>
-                        <a href="<?php echo site_url('trip/requestapproval/'. $trip['tr_id']); ?>" class="btn btn-sm btn-outline-success confirm" title="Are you sure you want to request approval for this trip?."><i class="fa fa-send"></i>&nbsp;Request Approval</a>
+                        <a href="<?php echo site_url('trip/requestapproval/' . $trip['tr_id']); ?>" class="btn btn-sm btn-outline-success confirm" title="Are you sure you want to request approval for this trip?."><i class="fa fa-send"></i>&nbsp;Request Approval</a>
                         <?php
                     }
 
@@ -308,7 +315,6 @@ if ($can_approve) {
 </section>
 
 <script type="text/javascript">
-
     $(document).ready(function () {
         $('select[name=medical_by_osha]').select2({placeholder: 'Select YES or NO'});
         $('.remove_row').click(function () {
@@ -316,7 +322,4 @@ if ($can_approve) {
         });
 
     });
-
-
-
 </script>

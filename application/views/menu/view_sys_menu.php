@@ -28,32 +28,49 @@
             ?>
             <li class="<?php echo ($curr_menu == 'TRIP') ? "active" : "" ?>"><a href="#trip" aria-expanded="<?php echo ($curr_menu == 'TRIP') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-car"></i>Trip Request </a>
                 <ul id="trip" class="<?php echo ($curr_sub_menu == 'TRIP') ? "" : "collapse" ?> list-unstyled">
-                    <li><a href="<?php echo site_url('trip/requests'); ?>">Trip Requests</a></li>
-                    <li><a href="<?php echo site_url('trip/inbox'); ?>">Incoming Request</a></li>
-                    <li><a href="<?php echo site_url('trip/requesttrip');  ?>">Request Trip</a></li>
-                    <li><a href="<?php echo site_url('trip/myrequests'); ?>">My Trip Requests</a></li>
+
+                    <?php
+                    if (in_array(strtolower($role), ['line manager', 'hod'])) {
+                        ?>
+                        <li><a href="<?php echo site_url('trip/requests'); ?>">Trip Requests</a></li>
+                        <li><a href="<?php echo site_url('trip/inbox'); ?>">Incoming Requests<!--<h5><span class="badge badge-danger">3 NEW</span></h5>--></a></li>
+                        <?php
+                    }
+
+                    if (strtolower($role) == 'driver') {
+                        ?>
+                        <li><a href="<?php echo site_url('trip/requesttrip'); ?>">Request Trip</a></li>
+                        <li><a href="<?php echo site_url('trip/myrequests'); ?>">My Trip Requests</a></li>
+                        <?php
+                    }
+                    ?>
+                    
                 </ul>
             </li>
-            
-            <li class="<?php echo ($curr_menu == 'MANAGEMENT') ? "active" : ""; ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGEMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
-                <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGEMENT') ? "" : "collapse"; ?> list-unstyled">
-                    <li><a href="<?php echo site_url('management/departments'); ?>">Departments</a></li>
-                    <li><a href="<?php echo site_url('management/sections'); ?>">Sections</a></li>
-                    <li><a href="<?php  ?>">Administrators</a></li>
-                </ul>
-            </li>
+
             <?php
+            if (in_array(strtolower($role), ['line manager', 'hod'])) {
+                ?>
+                <li class="<?php echo ($curr_menu == 'MANAGEMENT') ? "active" : ""; ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGEMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
+                    <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGEMENT') ? "" : "collapse"; ?> list-unstyled">
+                        <li><a href="<?php echo site_url('management/departments'); ?>">Departments</a></li>
+                        <li><a href="<?php echo site_url('management/sections'); ?>">Sections</a></li>
+                        <li><a href="<?php echo site_url('management/sections'); ?>">Approval Officials</a></li>
+                        <!--<li><a href="<?php ?>">Administrators</a></li>-->
+                    </ul>
+                </li>
+
+                <?php
+            }
         }
-
-
-        if (in_array($page, ['HOME', 'UPDATE_DRIVER_PROFILE'])) {
+        if (in_array($page, ['HOME', 'UPDATE_DRIVER_PROFILE']) AND strtolower($role) == 'driver') {
             ?>
             <li class="<?php echo ($curr_menu == 'DRIVER') ? "active" : "" ?>"><a href="#driver" aria-expanded="<?php echo ($curr_menu == 'DRIVER') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-user-circle"></i>Driver Profile </a>
                 <ul id="driver" class="<?php echo ($curr_sub_menu == 'DRIVER') ? "" : "collapse" ?> list-unstyled">
                     <?php
                     if (in_array($page, ['HOME'])) {
                         ?>
-                        <li><a href="<?php ?>">Driver Details</a></li>
+                        <!--<li><a href="<?php ?>">Driver Details</a></li>-->
                         <?php
                     }
                     ?>

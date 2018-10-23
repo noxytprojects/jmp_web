@@ -209,13 +209,15 @@
                 $('.just_number').numeric({decimal: false, negative: false});
 
                 $(".max_date").daterangepicker({
-                    "format": 'YYYY-MM-DD',
+                    locale: {
+                        format: 'DD/MM/YYYY',
+                    },
                     "autoUpdateInput": true,
                     "singleDatePicker": true,
                     "autoApply": false,
                     "linkedCalendars": false,
-                    "startDate": "<?php echo date('m/d/Y'); ?>",
-                    "maxDate": "<?php echo date('m/d/Y'); ?>"
+                    "startDate": "<?php echo date('d/m/Y'); ?>",
+                    "maxDate": "<?php echo date('d/m/Y'); ?>"
 
                 }, function (start, end, label) {
                     //$('.max_date').val(start.format('YYYY-MM-DD'));
@@ -223,13 +225,15 @@
                 });
 
                 $(".min_date").daterangepicker({
-                    "format": 'YYYY-MM-DD',
+                    locale: {
+                        format: 'DD/MM/YYYY',
+                    },
                     "autoUpdateInput": true,
                     "singleDatePicker": true,
                     "autoApply": false,
                     "linkedCalendars": false,
-                    "startDate": "<?php echo date('m/d/Y'); ?>",
-                    "minDate": "<?php echo date('m/d/Y'); ?>"
+                    "startDate": "<?php echo date('d/m/Y'); ?>",
+                    "minDate": "<?php echo date('d/m/Y'); ?>"
 
                 }, function (start, end, label) {
                     //$('.max_date').val(start.format('YYYY-MM-DD'));
@@ -238,14 +242,13 @@
 
                 $(".min_time").daterangepicker({
                     locale: {
-                        format: 'DD/MM/YY hh:mm A'
+                        format: 'DD/MM/YYYY hh:mm A'
                     },
                     "autoUpdateInput": true,
                     "singleDatePicker": true,
                     "autoApply": false,
                     timePicker: true,
                     "linkedCalendars": false,
-                    "startDate": "<?php echo date('d/m/Y hh:ii'); ?>",
                     "minDate": "<?php echo date('d/m/Y hh:ii'); ?>"
 
                 }, function (start, end, label) {

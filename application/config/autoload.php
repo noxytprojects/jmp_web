@@ -59,7 +59,7 @@ $autoload['packages'] = array();
   |
   |	$autoload['libraries'] = array('user_agent' => 'ua');
  */
-$autoload['libraries'] = array('form_validation', 'session', 'database', 'user_agent');
+$autoload['libraries'] = array('form_validation', 'session', 'database', 'user_agent','push', 'firebase');
 
 /*
   | -------------------------------------------------------------------
@@ -139,5 +139,6 @@ $autoload['model'] = [
     'DriverModel' => 'driver',
     'MaintenanceModel' => 'mnt',
     'TripsModel' => 'trip',
-    'ApprovalModel' => 'approval'
+    'ApprovalModel' => 'approval',
+    'FirebaseModel' => 'fbm'
 ];

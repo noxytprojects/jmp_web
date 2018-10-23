@@ -27,12 +27,13 @@
                         <table id="cds_acc_table" class="table table-striped" style="width: 100%;font-size: 13px;">
                             <thead>
                                 <tr>
-                                    <th style="width: 10px;">No.</th>
+                                    <!--<th style="width: 10px;">No.</th>-->
+                                    <th>Journey Purpose</th>
                                     <th>Requested On</th>
                                     <!--<th>Requestor</th>-->
                                     <th>Vehicle</th>
-                                    <th>Departure & <br/>Arrival Time</th>
-                                    <th>Destination</th>
+                                    <th>Departure Location & Time</th>
+                                    <th>Destination Location & Time</th>
                                     <th>Request Status</th>
                                     <th style="width: 10px"></th>
                                 </tr>
@@ -59,7 +60,7 @@
             responsive: true,
             fixedHeader: {headerOffset: 70},
             searching: true,
-            lengthChange: false,
+            lengthChange: true,
             "pageLength": 25,
             "processing": true, //Feature control the processing indicator.
             "serverSide": true, //Feature control DataTables' server-side processing mode.

@@ -13,14 +13,14 @@ if (in_array('modal_template', $modals)) {
     $(document).ready(function () {
 
         // Submit ajax form button clicked
-        $(document).on('submit', '#edit_section_form,#add_section_form,#edit_department_form,#add_department_form,#approve_request_form,#disapprove_request_form,#request_trip_form', function (e) {
+        $(document).on('submit', '#update_profile_form,#edit_section_form,#add_section_form,#edit_department_form,#add_department_form,#approve_request_form,#disapprove_request_form,#request_trip_form', function (e) {
             e.preventDefault();
             var post_data = $(this).serializeArray();
             submitAjaxForm(post_data, $(this).attr('action'));
         });
 
         //Cache data ajaxly
-        $(document).on('change', 'select[name=cds_number]', function (e) {
+        $(document).on('change', 'select[name=dept],select[name=cds_number]', function (e) {
             e.preventDefault();
             field = $(this).attr('name');
             value = $(this).val()
@@ -227,7 +227,13 @@ if (in_array('modal_template', $modals)) {
 
                         switch (field) {
                             // Populate add attendance form
-                            case '':
+                            case 'dept':
+                                
+                                $('select[name=section]').empty().select2({
+                                    placeholder: 'Select driver section',
+                                    data: data.selections
+                                });
+                                
                                 break;
                         }
                     }

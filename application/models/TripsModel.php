@@ -9,28 +9,27 @@ Class TripsModel extends CI_Model {
     // Ajax retrieve trips starts here
 
     private function _select_trips($data) {
-        
+
         $this->db->select($data['select_columns'])
                 ->from('trip_request tr')
                 ->join('drivers_profile dp', 'dp_ad_name = tr_ad_name', 'INNER')
                 ->join('approval ap', 'ap.ap_tr_id = tr.tr_id', 'LEFT OUTER');
-        
+
         if ($data['where_in'] != NULL) {
             foreach ($data['where_in'] as $key => $wn) {
                 $this->db->where_in($key, $wn);
             }
         }
-        
-        if(null !== $data['cond']){
+
+        if (null !== $data['cond']) {
             $this->db->where($data['cond']);
         }
-        
     }
 
     private function _get_datatables_trips($data) {
-        
+
         $this->_select_trips($data);
-        
+
         $i = 0;
         foreach ($data['search_columns'] as $item) { // loop column 
             if ($_POST['search']['value']) { // if datatable send POST for search
@@ -81,9 +80,28 @@ Class TripsModel extends CI_Model {
     public function saveTrip($data) {
 
         $this->db->trans_start();
-        // Insert trip data
-        $this->db->insert('trip_request', $data['trip_data']);
-        $tr_id = $this->db->insert_id();
+
+        switch ($data['mode']) {
+
+            // edit request
+            case 'edit':
+                $this->db->where('tr_id', $data['tr_id'])->update('trip_request', $data['trip_data']);
+                $tr_id = $data['tr_id'];
+                break;
+                ;
+
+            //Add new request
+            case 'add':
+                $this->db->insert('trip_request', $data['trip_data']);
+                $tr_id = $this->db->insert_id();
+                $this->db->where('att_type','TRIP_REQUEST')->where('att_ref IS NULL')->where('att_status','0')->update('attachment',['att_ref' =>$tr_id,'att_status'=> '1']);
+                break;
+            
+            default :
+                $tr_id = false;
+                break;
+        }
+
         $this->db->trans_complete();
 
         if ($this->db->trans_status() == false) {
@@ -95,7 +113,7 @@ Class TripsModel extends CI_Model {
             return $tr_id;
         }
     }
-    
+
     public function getTripRequests($cols = null, $cond = null, $limit = null, $where_in = null) {
 
 
@@ -118,11 +136,11 @@ Class TripsModel extends CI_Model {
         }
 
         $res = $this->db->from('trip_request tr')
-                ->join('drivers_profile dp', 'dp_ad_name = tr_ad_name', 'INNER')
-                ->join('department dept','dept.dept_id = dp.dp_dept_id')
-                ->join('section sec','sec.sec_id = dp.dp_section_id')
-                ->join('approval ap', 'ap.ap_tr_id = tr.tr_id', 'LEFT OUTER')->get();
-        
+                        ->join('drivers_profile dp', 'dp_ad_name = tr_ad_name', 'INNER')
+                        ->join('department dept', 'dept.dept_id = dp.dp_dept_id')
+                        ->join('section sec', 'sec.sec_id = dp.dp_section_id')
+                        ->join('approval ap', 'ap.ap_tr_id = tr.tr_id', 'LEFT OUTER')->get();
+
         if ($limit == 1 AND $res->num_rows() == 1) {
             return $res->row_array();
         } elseif ($limit == 1 AND $res->num_rows() != 1) {

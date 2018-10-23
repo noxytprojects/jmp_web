@@ -98,3 +98,9 @@ define('DESIGNED_BY_URL', 'http://noxyt.com');
 define('COPYRIGHT','Noxyt');
 define('COPYRIGHT_URL','https://noxyt.com');
 define('MSG_EXPIRY_SESSION', 'Your session might have been expired, Login is required');
+
+
+define('FIREBASE_API_KEY','AAAAOIkLbRc:APA91bHlLLdGDkU1JNq1lygT2pbMs-u3V_sPtAtxknZUfdm2wDw5eh0n4cL0nkxAuhdG4n_ea_g4kvQ81rS7lQ6sVaOizXHwntWKhrd7ZqEqU3Cm_rXXtS36d0Q26IrgPXhs5XQg8oCl');
+define('API_URL', 'http://192.168.43.159:8888/jomobilewebserver/index.php/');
+define('IS_AJAX', isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+

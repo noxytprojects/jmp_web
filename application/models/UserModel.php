@@ -153,5 +153,9 @@ Class UserModel extends CI_Model {
         $this->db->where('usr_id', $this->user_id)->update('users',['usr_last_activity_time'=> date('Y-m-d H:i:s'),'usr_user_agent' => sha1($user_agent)]);
     }
     
+    public function validateSession($user, $key) {
+        return TRUE;
+    }
+    
 
 }

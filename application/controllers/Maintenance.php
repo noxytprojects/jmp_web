@@ -18,7 +18,7 @@ class Maintenance extends CI_Controller {
         }
 
         // Initialize valid fields
-        $valid_fields = ['cds_number'];
+        $valid_fields = ['dept'];
 
         // initialize post inputs
         $field = $this->input->post('field');
@@ -30,19 +30,19 @@ class Maintenance extends CI_Controller {
 
         switch ($field) {
 
-            case 'cds_number':
-
-                $rep_cds [] = ['text' => '', 'id' => ''];
-
-                $cds_accounts = $this->shareholder->getCdsAccounts(NULL, ['cds_acc_number <>' => $value], NULL, TRUE);
-                $shareholder = $this->shareholder->getCdsAccounts(NULL, ['cds_acc_number' => $value], 1);
-
-                foreach ($cds_accounts as $c) {
-                    $rep_cds[] = ['text' => $c['cds_acc_number'] . ' - ' . $c['cds_acc_fullname'], 'id' => $c['cds_acc_number']];
-                }
-                $json = ['status' => ['error' => FALSE], 'rep_cds' => $rep_cds, 'shareholder' => $shareholder];
                 
-
+            case 'dept':
+                
+                $selections [] = ['text' => '', 'id' => ''];
+                
+                $sections = $this->mnt->getSections(NULL, ['sec.sec_dept_id' => $value]);
+                
+                foreach($sections as $section){
+                    $selections[] = ['text' => $section['sec_name'],'id' => $section['sec_id'] ];
+                }
+                
+                $json = ['status' => ['error' => false],'selections' => $selections];
+                
                 break;
         }
 

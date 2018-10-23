@@ -161,23 +161,73 @@ function cus_status_template($status) {
 
     switch ($status) {
         case 'NEW':
-            $status_template = '<h4><span class="badge badge-info">NEW</span></h4>';
+            $status_template = '<h5><span class="badge badge-info">NEW</span></h5>';
             break;
 
         case 'PENDING':
-            $status_template = '<h4><span class="badge badge-danger">PENDING</span></h4>';
+            $status_template = '<h5><span class="badge badge-danger">PENDING</span></h5>';
             break;
 
         case 'COMPLETED':
-            $status_template = '<h4><span class="badge badge-info">COMPLETED</span></h4>';
+            $status_template = '<h5><span class="badge badge-info">COMPLETED</span></h5>';
             break;
 
         case 'APPROVED':
-            $status_template = '<h4><span class="badge badge-success">APPROVED</span></h4>';
+            $status_template = '<h5><span class="badge badge-success">APPROVED</span></h5>';
             break;
 
         case 'PAUSED':
-            $status_template = '<h4><span class="badge badge-secondary">PAUSED</span></h4>';
+            $status_template = '<h5><span class="badge badge-secondary">PAUSED</span></h5>';
+            break;
+        
+        case 'DISAPPROVED':
+            $status_template = '<h5><span class="badge badge-danger">DISAPPROVED</span></h5>';
+            break;
+        
+        case 'REJECTED':
+            $status_template = '<h5><span class="badge badge-danger">REJECTED</span></h5>';
+            break;
+
+
+        default:
+            break;
+    }
+    
+    return $status_template;
+}
+
+
+function cus_ionic_color($status) {
+
+    $status_template = "";
+
+    switch ($status) {
+        case 'NEW':
+            $status_template = 'primary';
+            break;
+
+        case 'PENDING':
+            $status_template = 'danger';
+            break;
+
+        case 'COMPLETED':
+            $status_template = 'primary';
+            break;
+
+        case 'APPROVED':
+            $status_template = 'secondary';
+            break;
+
+        case 'PAUSED':
+            $status_template = 'dark';
+            break;
+        
+        case 'DISAPPROVED':
+            $status_template = 'danger';
+            break;
+        
+        case 'REJECTED':
+            $status_template = 'danger';
             break;
 
 

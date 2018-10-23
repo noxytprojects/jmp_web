@@ -30,9 +30,9 @@ Class UtilityModel extends CI_Model {
             return FALSE;
         }
     }
-    
+
     public function getSMSFormat($msg_tag) {
-        
+
         $this->db->where('ws_key', $msg_tag);
         $this->db->from('smscontent');
         $this->db->limit(1);
@@ -45,48 +45,30 @@ Class UtilityModel extends CI_Model {
         } else {
             return 'Something went wrong. Contact Your System Admin';
         }
-        
     }
-    
+
     public function saveMessage($msg_data) {
-        $this->db->insert('sms',$msg_data);
+        $this->db->insert('sms', $msg_data);
         return $this->db->affected_rows();
     }
 
-    public function savetempFile($applicant_id = null, $file_name, $og_filename, $type = 'TEMP') {
+    public function saveTempFile($data) {
 
-        if ($applicant_id !== null) {
-            $data['att_appl_id'] = $applicant_id;
-        }
+        $this->db->trans_start();
 
-        $data = [
-            "att_name" => $file_name,
-            "att_og_name" => $og_filename,
-            "att_type" => 'APPLICANT_ID',
-            "att_status" => $type,
-            "att_timestamp" => date('Y-m-d H:i:s'),
-            "att_user_agent" => sha1(1)
-        ];
+        $this->db->insert('attachment', $data['file_data']);
 
-        switch ($type) {
-            case 'TEMP_REPLACE':
-                $data['att_appl_id'] = $this->session->userdata['check_status']['id_number'];
-                $this->db->insert('attachments', $data);
-                break;
-            case 'IMPORT':
-                $data = [
-                    'import_path' => $file_name,
-                    'import_timestamp' => date('Y-m-d H:i:s'),
-                    'import_user_id' => $this->session->userdata['logged_in']['user_id'],
-                    'import_status' => 'PENDING'
-                ];
-                $this->db->insert('ycc_imports', $data);
-                break;
-            default :
-                $data['att_status'] = 'TEMP';
-                $data["att_temp_token"] = $this->session->userdata['applicant']['token'];
-                $this->db->insert('attachments', $data);
-                break;
+        $att_id = $this->db->insert_id();
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() == false) {
+
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            $this->db->trans_commit();
+            return $att_id;
         }
     }
 
@@ -100,28 +82,38 @@ Class UtilityModel extends CI_Model {
         return $res->row_array();
     }
 
-    public function getAttachments($cond = null, $limit = null, $where_in = null) {
+    public function getAttachments($cols = null, $cond = null, $limit = null, $where_in = null) {
 
-        if ($cond !== null) {
+
+        if ($cols !== NULL) {
+            $this->db->select($cols);
+        }
+
+        if ($cond !== NULL) {
             $this->db->where($cond);
         }
 
-        if ($limit == 1) {
+        if ($limit !== NULL) {
             $this->db->limit($limit);
         }
 
-        if ($where_in !== NULL) {
-            $this->db->where_in($where_in);
+        if ($where_in != NULL) {
+            foreach ($where_in as $key => $wn) {
+                $this->db->where_in($key, $wn);
+            }
         }
 
-        $q = $this->db->get('ycc_attachments');
 
-        if ($limit == 1 AND $q->num_rows() == 1) {
-            return $q->row_array();
-        } elseif ($limit == 1 AND $q->num_rows() < 1) {
-            return FALSE;
+        $res = $this->db->get('attachment att');
+
+
+
+        if ($limit == 1 AND $res->num_rows() == 1) {
+            return $res->row_array();
+        } elseif ($limit == 1 AND $res->num_rows() != 1) {
+            return false;
         } else {
-            return $q->result_array();
+            return $res->result_array();
         }
     }
 
@@ -154,9 +146,10 @@ Class UtilityModel extends CI_Model {
         }
     }
 
-    public function removeFile($filename) {
-        $this->db->where("att_name", $filename);
-        $q = $this->db->delete('attachments');
+    public function removeFile($att_id) {
+        $this->db->where("att_id", $att_id);
+        $this->db->delete('attachment');
+        return $this->db->affected_rows();
     }
 
     public function removeUploadedFile($file_id) {
@@ -381,13 +374,11 @@ Class UtilityModel extends CI_Model {
         return $this->db->affected_rows();
     }
 
-    
     public function saveDl($data) {
-        $this->db->insert('daily_logs',$data);
+        $this->db->insert('daily_logs', $data);
         return $this->db->insert_id();
     }
-    
-    
+
     private function _get_datatables_query_daily_logs($data) {
 
         $this->db->select($data['select_columns']);
@@ -440,8 +431,45 @@ Class UtilityModel extends CI_Model {
         $this->db->select('dl_id')->from('daily_logs');
         return $this->db->count_all_results();
     }
-    
+
     public function getNacteAccademicYear() {
-        return ''.((int)date('Y') - 1).'.'.date('Y');
+        return '' . ((int) date('Y') - 1) . '.' . date('Y');
     }
+
+    public function removeAttachments($att_ids) {
+
+        foreach ($att_ids as $id) {
+
+            $att = $this->getAttachments(NULL, ['att_id' => $id], 1);
+
+            switch ($att['att_type']) {
+                case 'DRIVER_LICENSE':
+                    $path = FCPATH . 'uploads/license/';
+                    break;
+
+                case 'MEDICAL_FITNESS':
+                    $path = FCPATH . 'uploads/medical/';
+                    break;
+                
+                case 'TRIP_REQUEST':
+                    $path = FCPATH . 'uploads/request/';
+                    break;
+
+                default:
+                    $att = FALSE;
+                    break;
+            }
+
+            if ($att) {
+                $path .= $att['att_name'];
+                log_message(SYSTEM_LOG, 'Deleting path:'. $path);
+                $res = $this->removeFile($att['att_id']);
+
+                if ($res AND file_exists($path)) {
+                    unlink($path);
+                }
+            }
+        }
+    }
+
 }

@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <title>Quorum Report</title>
+        <title><?php echo SYSTEM_NAME . ' - Trip Request PDF'; ?></title>
         <style type="text/css">
             table{
                 width: 100%;
@@ -216,6 +216,14 @@
                     </tr>
                 </tbody>
             </table>
+            <br/>
+            <?php
+            if (!in_array(strtolower($trip['tr_status']), ['APPROVED', 'COMPLETED'])) {
+                ?>
+                <p style="color: red; font-size: 13px">This trip request has not yet been approved</p>
+                <?php
+            }
+            ?>
         </div>
     </body>
 </html>
