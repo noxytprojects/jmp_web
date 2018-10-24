@@ -590,35 +590,33 @@ class Api extends CI_Controller {
         } else {
             $usn = $this->usr->ad_name;
         }
-        
-        $driver_ad_name = $this->input->post('driver_ad_name');;
-        
+
+        $driver_ad_name = $this->input->post('driver_ad_name');
+        ;
+
         $driver = $this->driver->getDriverProfiles(NULL, ['dp_ad_name' => $driver_ad_name], 1);
-        
-        if(!$driver){
+
+        if (!$driver) {
             cus_json_error('Driver profile was not found or it may have been removed from the system');
         }
-        
-        if(strtolower($usn) != $driver['dp_ao_ad_name']){
+
+        if (strtolower($usn) != $driver['dp_ao_ad_name']) {
             cus_json_error('Access denied');
         }
-        
-        if(in_array(strtolower($driver['dp_status']) , ['APPROVED'])){
+
+        if (in_array(strtolower($driver['dp_status']), ['APPROVED'])) {
             cus_json_error('Driver profile is alread approved');
         }
-        
-        
+
+
         $res = $this->driver->updateDriverDetails(['driver_data' => ['dp_status' => 'APPROVED']], $driver['dp_ad_name']);
-        
-        if(!$res){
+
+        if (!$res) {
             cus_json_error("Nothing was updated");
         }
-        
-        
+
+
         echo json_encode(['status' => ['error' => FALSE]]);
-        
-        
-        
     }
 
     public function submitApproveRequest() {
@@ -653,6 +651,18 @@ class Api extends CI_Controller {
         if (!$approver) {
             cus_json_error('Access denied.');
         }
+
+        $approval_status = $this->approval->getRequestApprovals(NULL, ['ap.ap_ad_name' => $approver['ao_ad_name'], 'ap.ap_tr_id' => $trip['tr_id']], 1);
+
+        if (!$approval_status) {
+            cus_json_error('Access denied. You are not the right person to approve this trip request.');
+        }
+
+
+        if (!empty($approval_status['ap_status'])) {
+            cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
+        }
+
 
         $validations = [
                 ['field' => 'comment', 'label' => 'Approval Comment', 'rules' => 'trim']
@@ -713,8 +723,15 @@ class Api extends CI_Controller {
 
                 $this->usr->setSessMsg('Trip request approved successfully', 'success');
                 $json = json_encode([
-                    'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('trip/previewrequest/' . $trip['tr_id'])]
+                    'status' => [
+                        'error' => FALSE,
+                        'redirect' => TRUE,
+                        'redirect_url' => site_url('trip/previewrequest/' . $trip['tr_id'])
+                    ],
+                    'approval' => $approval_status,
+                    'request' => $this->getRequestAndApprovalDetails($trip['tr_id'], $trip['tr_ad_name'])
                 ]);
+
                 echo $json;
             } else {
                 cus_json_error('Approval status was not updated');
@@ -754,6 +771,17 @@ class Api extends CI_Controller {
 
         if (!$approver) {
             cus_json_error('Access denied.');
+        }
+        
+        $approval_status = $this->approval->getRequestApprovals(NULL, ['ap.ap_ad_name' => $approver['ao_ad_name'], 'ap.ap_tr_id' => $trip['tr_id']], 1);
+
+        if (!$approval_status) {
+            cus_json_error('Access denied. You are not the right person to approve this trip request.');
+        }
+
+
+        if (!empty($approval_status['ap_status'])) {
+            cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
         }
 
         $validations = [
@@ -815,7 +843,9 @@ class Api extends CI_Controller {
 
                 $this->usr->setSessMsg('Trip request disapproved successfully', 'success');
                 $json = json_encode([
-                    'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('trip/previewrequest/' . $trip['tr_id'])]
+                    'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('trip/previewrequest/' . $trip['tr_id'])],
+                    'approval' => $approval_status,
+                    'request' => $this->getRequestAndApprovalDetails($trip['tr_id'], $trip['tr_ad_name'])
                 ]);
                 echo $json;
             } else {
