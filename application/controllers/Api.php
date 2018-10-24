@@ -886,57 +886,35 @@ class Api extends CI_Controller {
             die();
         } else {
 
+          
+        
             $user = [
                 'ad_name' => $this->input->post('usn'),
                 'phone_number' => "",
                 'full_name' => "",
                 'token' => sha1(rand(1111, 9999)),
                 'driver_details' => FALSE,
-                'role' => 'NONE',
+                'role' => 'DRIVER',
+                'can_approve_requests' => FALSE,
                 'email' => ''
             ];
 
             $page = "";
 
-            $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $usn], 1);
+            
 
             $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_ad_name' => $usn], 1);
-            $hod = $this->mnt->getDepartments(NULL, ['dept_hod_ad_name' => $usn], 1);
-            $lm = $this->mnt->getSections(NULL, ['sec_tl_ad_name' => $usn], 1);
-
-
+            $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $usn], 1);
+   
             if ($manager) {
-                // if is Manager
-                $user['ad_name'] = $manager['ao_ad_name'];
-                $user['phone_number'] = $manager['ao_phone_number'];
-                $user['full_name'] = $manager['ao_full_name'];
-                $user['role'] = 'LINE MANAGER';
-                $user['email'] = $manager['ao_email'];
-
-                $page = "HOME";
+                $user['role'] = "MANAGER";
+                $user['can_approve_requests'] = TRUE;
+                
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is Line Manager');
-            } elseif ($hod) {
-
-                // if is HOD
-                $user['ad_name'] = $hod['dept_hod_ad_name'];
-                $user['phone_number'] = $hod['dept_hod_phone'];
-                $user['full_name'] = $hod['dept_hod_full_name'];
-                $user['role'] = 'HOD';
-
-                $page = "HOME";
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is HOD');
-            } elseif ($lm) {
-
-                // If is line manager
-                $user['ad_name'] = $lm['sec_tl_ad_name'];
-                $user['phone_number'] = $lm['sec_tl_phone_number'];
-                $user['full_name'] = $lm['sec_tl_full_name'];
-                $user['role'] = 'LINE MANAGER';
-                $page = "HOME";
-
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is Line Manager');
-            } elseif ($driver) {
-
+            } 
+            
+            if($driver) {
+                
                 // If user is driver
                 $driver_details = [
                     "name" => $driver['dp_full_name'],
@@ -958,7 +936,6 @@ class Api extends CI_Controller {
                 $user['phone_number'] = $driver['dp_phone_number'];
                 $user['full_name'] = $driver['dp_full_name'];
                 $user['driver_details'] = $driver_details;
-                $user['role'] = 'DRIVER';
 
                 $page = "HOME";
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is Driver');
@@ -1040,7 +1017,7 @@ class Api extends CI_Controller {
                 ['field' => 'dept', 'label' => 'department', 'rules' => 'trim|required'],
                 ['field' => 'section', 'label' => 'section', 'rules' => 'trim|required'],
                 ['field' => 'medical_by_osha', 'label' => 'medical done by osha', 'rules' => 'trim|required|callback_validateYesNo'],
-                ['field' => 'medical_fitness_date', 'label' => 'medical fitness date', 'rules' => 'trim|required|callback_validateMedicalFitnessDate'],
+                ['field' => 'medical_fitness_date', 'label' => 'medical fitness date', 'rules' => 'trim|callback_validateMedicalFitnessDate'],
                 ['field' => 'medical_file_attachment', 'label' => 'medical fitness report', 'rules' => 'callback_validateMedicalFile'],
                 ['field' => 'manager', 'label' => 'line manager', 'rules' => 'trim|required|callback_validateLineManager'],
                 ['field' => 'license_attachment', 'label' => 'license attachment', 'rules' => 'callback_validateLicenseAttachment'],
@@ -1073,6 +1050,7 @@ class Api extends CI_Controller {
             $medical_by_osha = $this->input->post('medical_by_osha');
 
 
+           
 
             $license_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'DRIVER_LICENSE', 'att_status' => '0', 'att_ref' => $usn]);
             $medical_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'MEDICAL_FITNESS', 'att_status' => '0', 'att_ref' => $usn]);
@@ -1139,6 +1117,10 @@ class Api extends CI_Controller {
                 "line_manager" => $driver['ao_full_name'] . ' - ' . $driver['ao_email'],
                 "dept_section" => $driver['dept_name'] . ' - ' . $driver['sec_name']
             ];
+            
+            
+   
+            
 
             $user = [
                 'ad_name' => $driver['dp_ad_name'],
@@ -1150,6 +1132,15 @@ class Api extends CI_Controller {
                 'role' => 'DRIVER',
                 'email' => $driver['dp_email']
             ];
+            
+            
+            
+            $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $driver['dp_ad_name']], 1);
+            
+            if ($manager) {
+                $user['role'] = "MANAGER";
+                $user['can_approve_requests'] = TRUE;
+            }
 
 
 
@@ -1608,7 +1599,7 @@ class Api extends CI_Controller {
 
         $md_by_osha = $this->input->post('medical_by_osha');
 
-        if (in_array($md_by_osha, ['YES'])) {
+        if (in_array(strtolower($md_by_osha), ['yes'])) {
             if (empty($date)) {
                 $this->form_validation->set_message(__FUNCTION__, 'If attended medical fitness you should select assessment date');
                 return FALSE;
