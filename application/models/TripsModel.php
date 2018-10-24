@@ -137,6 +137,7 @@ Class TripsModel extends CI_Model {
 
         $res = $this->db->from('trip_request tr')
                         ->join('drivers_profile dp', 'dp_ad_name = tr_ad_name', 'INNER')
+                        ->join('approval_officials ao','ao.ao_ad_name = dp.dp_ao_ad_name')
                         ->join('department dept', 'dept.dept_id = dp.dp_dept_id')
                         ->join('section sec', 'sec.sec_id = dp.dp_section_id')
                         ->join('approval ap', 'ap.ap_tr_id = tr.tr_id', 'LEFT OUTER')->get();

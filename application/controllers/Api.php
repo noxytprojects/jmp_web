@@ -360,6 +360,7 @@ class Api extends CI_Controller {
             'dept.dept_name',
             'sec.sec_name',
             'sec.sec_tl_ad_name',
+            'dp.dp_ao_ad_name',
             'tr.tr_ad_name',
             'tr.tr_id',
             'tr.tr_journey_purpose purpose',
@@ -403,7 +404,7 @@ class Api extends CI_Controller {
         $trip['dispatch_time'] = cus_nice_timestamp($trip['dispatch_time']);
         $trip['arrival_time'] = cus_nice_timestamp($trip['arrival_time']);
         $trip['dp_license_expiry'] = cus_nice_date($trip['dp_license_expiry']);
-        $trip['can_approve_dp'] = ($trip['sec_tl_ad_name'] == $ad_name && in_array(strtolower($trip['dp_status']), ['pending'])) ? TRUE : FALSE;
+        $trip['can_approve_dp'] = ($trip['dp_ao_ad_name'] == $ad_name && in_array(strtolower($trip['dp_status']), ['pending'])) ? TRUE : FALSE;
 
         $trip['is_my_application'] = ($ad_name == $trip['tr_ad_name']) ? TRUE : FALSE;
         $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused'])) ? TRUE : FALSE;
