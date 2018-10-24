@@ -659,7 +659,7 @@ class Api extends CI_Controller {
         }
 
 
-        if (!empty($approval_status['ap_status'])) {
+        if (!in_array(strtolower($approval_status['ap_status']),['approved','disapproved'])) {
             cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
         }
 
@@ -780,7 +780,7 @@ class Api extends CI_Controller {
         }
 
 
-        if (!empty($approval_status['ap_status'])) {
+        if (!in_array(strtolower($approval_status['ap_status']),['approved','disapproved'])) {
             cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
         }
 
