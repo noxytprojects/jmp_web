@@ -9,6 +9,57 @@ class Api extends CI_Controller {
         $this->load->library('upload');
     }
 
+    public function getApiUrl() {
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: text/json');
+
+        echo json_encode([
+            'status' => ['error' => FALSE],
+            'api_url' => API_URL
+        ]);
+    }
+
+    public function checkIfAppIsLatest() {
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: text/json');
+
+        $_POST = json_decode(file_get_contents('php://input'), true);
+
+        $app_is_latest = TRUE;
+
+        $app_platform =  $this->input->post('app_platform');
+        $current_app_version = strtolower($app_platform) == 'ios' ? $this->utl->getSetValue('CURRENT_APP_VERSION_IOS') : $this->utl->getSetValue('CURRENT_APP_VERSION_ANDROID');
+
+        $app = [
+            'app_name' => $this->input->post('app_name'),
+            'app_version_code' => $this->input->post('app_version_code'),
+            'app_version' => $this->input->post('app_version'),
+            'app_package_name' => $this->input->post('app_package_name')
+        ];
+
+        if ($app['app_version'] != $current_app_version['st_value']) {
+            $app_is_latest = FALSE;
+        }
+
+        $json = json_encode([
+            'status' => ['error' => FALSE],
+            'app_status' => [
+                'app_is_latest' => $app_is_latest,
+                'app_package_name' => APP_PACKAGE_NAME,
+                'app_id' => ''
+            ],
+            'current_app_version' => $current_app_version['st_value'],
+            'platform' => $app_platform
+        ]);
+
+        log_message(SYSTEM_LOG, 'Checking app version ... FROM: ' . $json);
+
+        echo $json;
+        die();
+    }
+
     public function getDepartments() {
         header('Access-Control-Allow-Origin: *');
         header('Content-type: text/json');
@@ -659,13 +710,13 @@ class Api extends CI_Controller {
         }
 
 
-        if (in_array(strtolower($approval_status['ap_status']),['approved','disapproved'])) {
+        if (in_array(strtolower($approval_status['ap_status']), ['approved', 'disapproved'])) {
             cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
         }
 
 
         $validations = [
-                ['field' => 'comment', 'label' => 'Approval Comment', 'rules' => 'trim']
+            ['field' => 'comment', 'label' => 'Approval Comment', 'rules' => 'trim']
         ];
 
         $this->form_validation->set_rules($validations);
@@ -772,7 +823,7 @@ class Api extends CI_Controller {
         if (!$approver) {
             cus_json_error('Access denied.');
         }
-        
+
         $approval_status = $this->approval->getRequestApprovals(NULL, ['ap.ap_ad_name' => $approver['ao_ad_name'], 'ap.ap_tr_id' => $trip['tr_id']], 1);
 
         if (!$approval_status) {
@@ -780,12 +831,12 @@ class Api extends CI_Controller {
         }
 
 
-        if (in_array(strtolower($approval_status['ap_status']),['approved','disapproved'])) {
+        if (in_array(strtolower($approval_status['ap_status']), ['approved', 'disapproved'])) {
             cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
         }
 
         $validations = [
-                ['field' => $field, 'label' => 'Disapproval Comment', 'rules' => 'trim|required']
+            ['field' => $field, 'label' => 'Disapproval Comment', 'rules' => 'trim|required']
         ];
 
         $this->form_validation->set_rules($validations);
@@ -862,8 +913,8 @@ class Api extends CI_Controller {
         $_POST = json_decode(file_get_contents('php://input'), true);
 
         $validations = [
-                ['field' => 'usn', 'label' => 'Username', 'rules' => 'trim|required|callback_validateUsn', 'errors' => ['required' => 'Username field is required']],
-                ['field' => 'pwd', 'label' => 'Password', 'rules' => 'trim|required|callback_validatePwd', 'errors' => ['required' => 'Password field is required']]
+            ['field' => 'usn', 'label' => 'Username', 'rules' => 'trim|required|callback_validateUsn', 'errors' => ['required' => 'Username field is required']],
+            ['field' => 'pwd', 'label' => 'Password', 'rules' => 'trim|required|callback_validatePwd', 'errors' => ['required' => 'Password field is required']]
         ];
 
         $this->form_validation->set_rules($validations);
@@ -886,8 +937,8 @@ class Api extends CI_Controller {
             die();
         } else {
 
-          
-        
+
+
             $user = [
                 'ad_name' => $this->input->post('usn'),
                 'phone_number' => "",
@@ -901,20 +952,20 @@ class Api extends CI_Controller {
 
             $page = "";
 
-            
+
 
             $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_ad_name' => $usn], 1);
             $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $usn], 1);
-   
+
             if ($manager) {
                 $user['role'] = "MANAGER";
                 $user['can_approve_requests'] = TRUE;
-                
+
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is Line Manager');
-            } 
-            
-            if($driver) {
-                
+            }
+
+            if ($driver) {
+
                 // If user is driver
                 $driver_details = [
                     "name" => $driver['dp_full_name'],
@@ -1011,18 +1062,18 @@ class Api extends CI_Controller {
         }
 
         $validations = [
-                ['field' => 'name', 'label' => 'driver full name', 'rules' => 'trim|required'],
-                ['field' => 'phone', 'label' => 'phone number', 'rules' => 'trim|required|numeric|callback_validateDriverPhoneNumber'],
-                ['field' => 'email', 'label' => 'email address', 'rules' => 'trim|required|valid_email|callback_validateDriverEmail'],
-                ['field' => 'dept', 'label' => 'department', 'rules' => 'trim|required'],
-                ['field' => 'section', 'label' => 'section', 'rules' => 'trim|required'],
-                ['field' => 'medical_by_osha', 'label' => 'medical done by osha', 'rules' => 'trim|required|callback_validateYesNo'],
-                ['field' => 'medical_fitness_date', 'label' => 'medical fitness date', 'rules' => 'trim|callback_validateMedicalFitnessDate'],
-                ['field' => 'medical_file_attachment', 'label' => 'medical fitness report', 'rules' => 'callback_validateMedicalFile'],
-                ['field' => 'manager', 'label' => 'line manager', 'rules' => 'trim|required|callback_validateLineManager'],
-                ['field' => 'license_attachment', 'label' => 'license attachment', 'rules' => 'callback_validateLicenseAttachment'],
-                ['field' => 'license', 'label' => 'driver licence number', 'rules' => 'trim|required|callback_validateDriverLicence'],
-                ['field' => 'license_expiry', 'label' => 'license expiry date', 'rules' => 'trim|required'],
+            ['field' => 'name', 'label' => 'driver full name', 'rules' => 'trim|required'],
+            ['field' => 'phone', 'label' => 'phone number', 'rules' => 'trim|required|numeric|callback_validateDriverPhoneNumber'],
+            ['field' => 'email', 'label' => 'email address', 'rules' => 'trim|required|valid_email|callback_validateDriverEmail'],
+            ['field' => 'dept', 'label' => 'department', 'rules' => 'trim|required'],
+            ['field' => 'section', 'label' => 'section', 'rules' => 'trim|required'],
+            ['field' => 'medical_by_osha', 'label' => 'medical done by osha', 'rules' => 'trim|required|callback_validateYesNo'],
+            ['field' => 'medical_fitness_date', 'label' => 'medical fitness date', 'rules' => 'trim|callback_validateMedicalFitnessDate'],
+            ['field' => 'medical_file_attachment', 'label' => 'medical fitness report', 'rules' => 'callback_validateMedicalFile'],
+            ['field' => 'manager', 'label' => 'line manager', 'rules' => 'trim|required|callback_validateLineManager'],
+            ['field' => 'license_attachment', 'label' => 'license attachment', 'rules' => 'callback_validateLicenseAttachment'],
+            ['field' => 'license', 'label' => 'driver licence number', 'rules' => 'trim|required|callback_validateDriverLicence'],
+            ['field' => 'license_expiry', 'label' => 'license expiry date', 'rules' => 'trim|required'],
         ];
 
         $this->form_validation->set_rules($validations);
@@ -1050,7 +1101,7 @@ class Api extends CI_Controller {
             $medical_by_osha = $this->input->post('medical_by_osha');
 
 
-           
+
 
             $license_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'DRIVER_LICENSE', 'att_status' => '0', 'att_ref' => $usn]);
             $medical_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'MEDICAL_FITNESS', 'att_status' => '0', 'att_ref' => $usn]);
@@ -1117,10 +1168,10 @@ class Api extends CI_Controller {
                 "line_manager" => $driver['ao_full_name'] . ' - ' . $driver['ao_email'],
                 "dept_section" => $driver['dept_name'] . ' - ' . $driver['sec_name']
             ];
-            
-            
-   
-            
+
+
+
+
 
             $user = [
                 'ad_name' => $driver['dp_ad_name'],
@@ -1132,11 +1183,11 @@ class Api extends CI_Controller {
                 'role' => 'DRIVER',
                 'email' => $driver['dp_email']
             ];
-            
-            
-            
+
+
+
             $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $driver['dp_ad_name']], 1);
-            
+
             if ($manager) {
                 $user['role'] = "MANAGER";
                 $user['can_approve_requests'] = TRUE;
@@ -1195,23 +1246,23 @@ class Api extends CI_Controller {
         }
 
         $validations = [
-                ['field' => 'file', 'label' => 'attachment', 'rules' => 'callback_validateAttachment'],
-                ['field' => 'journey_purpose', 'label' => 'journey purpose', 'rules' => 'trim|required'],
-                ['field' => 'vehicle_reg_number', 'label' => 'vehicle registration number', 'rules' => 'trim|required'],
+            ['field' => 'file', 'label' => 'attachment', 'rules' => 'callback_validateAttachment'],
+            ['field' => 'journey_purpose', 'label' => 'journey purpose', 'rules' => 'trim|required'],
+            ['field' => 'vehicle_reg_number', 'label' => 'vehicle registration number', 'rules' => 'trim|required'],
             //['field' => 'medical_by_osha', 'label' => 'medical done by osha', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver medical fitness assessment has done by OSHA']],
             ['field' => 'reason_finish_after_17', 'label' => 'reason', 'rules' => 'trim|callback_validateWorkFinishAfter17h00'],
-                ['field' => 'work_finish_time', 'label' => '', 'rules' => 'trim|required|callback_validateYesNo', 'errors' => ['required' => 'You should select whether work will finish after 17h00']],
-                ['field' => 'vehicle_type', 'label' => 'vehicle type', 'rules' => 'trim|required'],
-                ['field' => 'difense_driver_training', 'label' => 'difense driver training', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver has attended defensive driver training']],
-                ['field' => 'for_by_for_training', 'label' => '4X4 off road driver training', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver has attended 4X4 off road driving training']],
-                ['field' => 'suitable_license', 'label' => '4X4 off road driver training', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver\'s license is suitable for vehicle being used']],
-                ['field' => 'fit_for_use', 'label' => 'vehicle fit for intended use', 'rules' => 'trim|required'],
-                ['field' => 'dispatch_time', 'label' => 'departure time', 'rules' => 'trim|required'],
-                ['field' => 'arraival_time', 'label' => 'arrival time', 'rules' => 'trim|required'],
-                ['field' => 'departure_location', 'label' => 'departure location', 'rules' => 'trim|required'],
-                ['field' => 'destination_location', 'label' => 'destination location', 'rules' => 'trim|required'],
-                ['field' => 'stop_locations', 'label' => 'stop locations and reason', 'rules' => 'trim'],
-                ['field' => 'distance', 'label' => 'distance covered', 'rules' => 'trim|required|numeric|callback_validateDistance']
+            ['field' => 'work_finish_time', 'label' => '', 'rules' => 'trim|required|callback_validateYesNo', 'errors' => ['required' => 'You should select whether work will finish after 17h00']],
+            ['field' => 'vehicle_type', 'label' => 'vehicle type', 'rules' => 'trim|required'],
+            ['field' => 'difense_driver_training', 'label' => 'difense driver training', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver has attended defensive driver training']],
+            ['field' => 'for_by_for_training', 'label' => '4X4 off road driver training', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver has attended 4X4 off road driving training']],
+            ['field' => 'suitable_license', 'label' => '4X4 off road driver training', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver\'s license is suitable for vehicle being used']],
+            ['field' => 'fit_for_use', 'label' => 'vehicle fit for intended use', 'rules' => 'trim|required'],
+            ['field' => 'dispatch_time', 'label' => 'departure time', 'rules' => 'trim|required'],
+            ['field' => 'arraival_time', 'label' => 'arrival time', 'rules' => 'trim|required'],
+            ['field' => 'departure_location', 'label' => 'departure location', 'rules' => 'trim|required'],
+            ['field' => 'destination_location', 'label' => 'destination location', 'rules' => 'trim|required'],
+            ['field' => 'stop_locations', 'label' => 'stop locations and reason', 'rules' => 'trim'],
+            ['field' => 'distance', 'label' => 'distance covered', 'rules' => 'trim|required|numeric|callback_validateDistance']
         ];
 
         $this->form_validation->set_rules($validations);

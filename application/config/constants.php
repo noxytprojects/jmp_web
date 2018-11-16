@@ -104,3 +104,5 @@ define('FIREBASE_API_KEY','AAAAOIkLbRc:APA91bHlLLdGDkU1JNq1lygT2pbMs-u3V_sPtAtxk
 define('API_URL', 'http://192.168.43.159:8888/jomobilewebserver/index.php/');
 define('IS_AJAX', isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
 
+
+define('APP_PACKAGE_NAME', 'com.noxyt.jmpapp');
