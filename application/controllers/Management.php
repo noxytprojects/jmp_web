@@ -82,6 +82,81 @@ class Management extends CI_Controller {
         //output to json format
         echo json_encode($output);
     }
+    
+    public function approvalOfficials() {
+
+        if (!$this->usr->is_logged_in) {
+            echo json_encode([
+                "draw" => $_POST['draw'],
+                "recordsTotal" => 0,
+                "recordsFiltered" => 0,
+                "data" => [],
+                "status" => [
+                    'error' => TRUE,
+                    'error_msg' => 'User has not logged in'
+                ]
+                    ]
+            );
+            die();
+        }
+
+        $data = [];
+        $datatables = [
+            'select_columns' => [
+                'dept.dept_name', 'dept.dept_hod_full_name', 'dept.dept_hod_ad_name', 'dept.dept_hod_email', 'dept.dept_hod_phone', 'dept.dept_id'
+            ],
+            'search_columns' => [
+                'dept.dept_name', 'dept.dept_hod_ad_name', 'dept.dept_hod_phone', 'dept.dept_hod_email', 'dept.dept_hod_full_name'
+            ],
+            'order_columns' => [
+                NULL, NULL, NULL, NUll, NULL, NULL, NULL
+            ],
+            'default_order_column' => [
+                'dept.dept_name' => 'ASC'
+            ],
+            'cond' => NULL,
+            'where_in' => NULL
+        ];
+
+        $list = $this->approval->get_datatables_ao($datatables);
+        $no = $_POST['start'];
+
+        foreach ($list as $a) {
+
+            $no++;
+            $row = [];
+
+            $links = '<div class="dropdown">
+                        <button type="button" id="closeCard2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn btn-info btn-sm"><i class="fa fa-ellipsis-v"></i></button>
+                        <div aria-labelledby="closeCard2" class="dropdown-menu dropdown-menu-right has-shadow">
+                            <a href="' . site_url('management/requesteditdepartment/' . $a->dept_id) . '" class="dropdown-item text-info request_form" target="_blank"> <i class="fa fa-edit"></i>&nbsp;&nbsp;Edit Details</a>
+                                <a href="' . site_url('management/deletedepartment/' . $a->dept_id) . '" class="dropdown-item text-danger confirm" title=" delete department"> <i class="fa fa-trash"></i>&nbsp;&nbsp;Delete</a>
+                        </div>
+                    </div>';
+
+            $row[] = $no;
+
+            $row[] = '<div nowrap="nowrap">' . strtoupper($a->dept_name) . '<div>';
+            $row[] = '<div nowrap="nowrap">' . $a->dept_hod_ad_name . '<div>';
+            $row[] = '<div nowrap="nowrap"><b>' . ucwords($a->dept_hod_full_name) . '</b></div>';
+            $row[] = '<div nowrap="nowrap">' . $a->dept_hod_phone . '</div>';
+            $row[] = '<div nowrap="nowrap">' . $a->dept_hod_email . '</div>';
+            $row[] = $links;
+            $data[] = $row;
+        }
+
+        $output = array(
+            "draw" => $_POST['draw'],
+            "recordsTotal" => $this->approval->count_all_ao($datatables),
+            "recordsFiltered" => $this->approval->count_filtered_ao($datatables),
+            "data" => $data,
+            "post" => $_POST
+        );
+
+
+        //output to json format
+        echo json_encode($output);
+    }
 
     public function ajaxSections() {
 

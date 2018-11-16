@@ -52,25 +52,7 @@ Class UtilityModel extends CI_Model {
         return $this->db->affected_rows();
     }
 
-    public function saveTempFile($data) {
-
-        $this->db->trans_start();
-
-        $this->db->insert('attachment', $data['file_data']);
-
-        $att_id = $this->db->insert_id();
-
-        $this->db->trans_complete();
-
-        if ($this->db->trans_status() == false) {
-
-            $this->db->trans_rollback();
-            return false;
-        } else {
-            $this->db->trans_commit();
-            return $att_id;
-        }
-    }
+    
 
     public function getTempFile($filename) {
         $res = $this->db->where('temp_att_name', $filename)->get('tbl_temp_attachments');
@@ -116,7 +98,25 @@ Class UtilityModel extends CI_Model {
             return $res->result_array();
         }
     }
+    public function saveTempFile($data) {
 
+        $this->db->trans_start();
+
+        $this->db->insert('attachment', $data['file_data']);
+
+        $att_id = $this->db->insert_id();
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() == false) {
+
+            $this->db->trans_rollback();
+            return false;
+        } else {
+            $this->db->trans_commit();
+            return $att_id;
+        }
+    }
     public function getImports($cols = null, $cond = null, $limit = null, $where_in = null) {
 
         if ($cond !== null) {
