@@ -327,7 +327,7 @@ class Api extends CI_Controller {
             cus_json_error('Trip request was not found or may have been removed from the system');
         }
 
-        if (!in_array(strtolower($trip['tr_status']), ['new', 'paused'])) {
+        if (!in_array(strtolower($trip['tr_status']), ['new', 'paused','pending'])) {
             cus_json_error('Trip request is not in the right status to request for approval');
         }
 
