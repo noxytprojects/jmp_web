@@ -39,7 +39,8 @@ class Api extends CI_Controller {
             'app_package_name' => $this->input->post('app_package_name')
         ];
 
-        if ($app['app_version'] != $current_app_version['st_value']) {
+       
+        if(version_compare($current_app_version['st_value'], '0.0.2') > $app['app_version']){
             $app_is_latest = FALSE;
         }
 
