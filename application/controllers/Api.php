@@ -361,7 +361,7 @@ class Api extends CI_Controller {
 
             $res = $this->approval->updateApprovalStatus([
                 'approval_data' => $approval_data,
-                'tr_id' => $trip['trip_id'],
+                'tr_id' => $trip['tr_id'],
                 'ad_name' => $trip['ap_ad_name'],
                 'tr_data' => ['tr_status' => 'PENDING']
             ]);
