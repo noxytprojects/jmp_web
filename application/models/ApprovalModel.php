@@ -139,7 +139,7 @@ Class ApprovalModel extends CI_Model {
 
         
         $res = $this->db->from('approval ap')
-                ->join('section sec','sec.sec_tl_ad_name = ap.ap_ad_name','LEFT OUTER')
+                ->join('approval_officials ao','ao.ao_ad_name = ap.ap_ad_name')
                 ->join('trip_request tr','tr.tr_id = ap.ap_tr_id')->get();
 
 
