@@ -1033,7 +1033,7 @@ class Api extends CI_Controller {
             cus_json_error('Drivers profile not found.');
         }
         
-        $line_managers = $this->approval->getApprovalOfficials(NULL, "ao.ao_title IS NOT NULL", $limit = null, $where_in = null);
+        $line_managers = $this->approval->getApprovalOfficials(NULL, "ao.ao_title IS NOT NULL");
         
         foreach ($line_managers as $key => $ln) {
             $line_managers[$key]['ao_full_name'] = $ln['ao_title'] . ' - '.$ln['ao_full_name'];
@@ -1044,7 +1044,7 @@ class Api extends CI_Controller {
                 'error' => FALSE
             ],
             'driver_details' => $driver,
-            'line_managers' => 
+            'line_managers' => $line_managers,
             'medical_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'MEDICAL_FITNESS', 'att.att_ref' => $ad_name]),
             'license_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'DRIVER_LICENSE', 'att.att_ref' => $ad_name])
         ];
