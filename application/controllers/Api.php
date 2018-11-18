@@ -456,11 +456,11 @@ class Api extends CI_Controller {
         $trip['dispatch_time'] = cus_nice_timestamp($trip['dispatch_time']);
         $trip['arrival_time'] = cus_nice_timestamp($trip['arrival_time']);
         $trip['dp_license_expiry'] = cus_nice_date($trip['dp_license_expiry']);
-        $trip['can_approve_dp'] = ($trip['dp_ao_ad_name'] == $ad_name && in_array(strtolower($trip['dp_status']), ['pending'])) ? TRUE : FALSE;
+        $trip['can_approve_dp'] = (strtolower($trip['dp_ao_ad_name']) == strtolower($ad_name) && in_array(strtolower($trip['dp_status']), ['pending'])) ? TRUE : FALSE;
 
-        $trip['is_my_application'] = ($ad_name == $trip['tr_ad_name']) ? TRUE : FALSE;
-        $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused'])) ? TRUE : FALSE;
-        $trip['can_request_approval'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused'])) ? TRUE : FALSE;
+        $trip['is_my_application'] = (strtolower($ad_name) == strtolower($trip['tr_ad_name'])) ? TRUE : FALSE;
+        $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused','pending'])) ? TRUE : FALSE;
+        $trip['can_request_approval'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused','pending'])) ? TRUE : FALSE;
 
         $trip['attachments'] = $this->utl->getAttachments(NULL, ['att.att_ref' => $trip['tr_id'], 'att.att_type' => 'TRIP_REQUEST']);
         $trip['attachment_counts'] = count($trip['attachments']);
