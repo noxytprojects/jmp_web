@@ -714,6 +714,16 @@ class Api extends CI_Controller {
         if (in_array(strtolower($approval_status['ap_status']), ['approved', 'disapproved'])) {
             cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
         }
+        
+        $driver = $this->driver->getDriverProfiles(['dp_status'], ['dp_ad_name' => $trip['tr_ad_name']], 1);
+        
+        if(!$driver){
+            cus_json_error('Driver profile was not found. Contact the system admin.');
+        }
+        
+        if(in_array(strtolower($driver['dp_status']), ['pending'])){
+            cus_json_error('You should approve driver profile before approving this trip request.');
+        }
 
 
         $validations = [
