@@ -459,8 +459,8 @@ class Api extends CI_Controller {
         $trip['can_approve_dp'] = (strtolower($trip['dp_ao_ad_name']) == strtolower($ad_name) && in_array(strtolower($trip['dp_status']), ['pending'])) ? TRUE : FALSE;
 
         $trip['is_my_application'] = (strtolower($ad_name) == strtolower($trip['tr_ad_name'])) ? TRUE : FALSE;
-        $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused','pending'])) ? TRUE : FALSE;
-        $trip['can_request_approval'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused','pending'])) ? TRUE : FALSE;
+        $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused'])) ? TRUE : FALSE;
+        $trip['can_request_approval'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused'])) ? TRUE : FALSE;
 
         $trip['attachments'] = $this->utl->getAttachments(NULL, ['att.att_ref' => $trip['tr_id'], 'att.att_type' => 'TRIP_REQUEST']);
         $trip['attachment_counts'] = count($trip['attachments']);
