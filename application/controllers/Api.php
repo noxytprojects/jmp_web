@@ -445,7 +445,7 @@ class Api extends CI_Controller {
 
         // get trip approvals
 
-        $approvals = $this->approval->getRequestApprovals(['ap.ap_comments','ap.ao_title', 'ao.ao_full_name sec_tl_full_name', 'ao.ao_email sec_tl_email', 'ap.ap_status', 'ap.ap_tr_id', 'ap.ap_ad_name'], ['ap.ap_tr_id' => $trip['tr_id']]);
+        $approvals = $this->approval->getRequestApprovals(['ap.ap_comments','ao.ao_title', 'ao.ao_full_name sec_tl_full_name', 'ao.ao_email sec_tl_email', 'ap.ap_status', 'ap.ap_tr_id', 'ap.ap_ad_name'], ['ap.ap_tr_id' => $trip['tr_id']]);
 
         foreach ($approvals as $key => $a) {
             $approvals[$key]['ap_comments'] = strip_tags($a['ap_comments']);
