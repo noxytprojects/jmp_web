@@ -40,7 +40,7 @@ class Api extends CI_Controller {
         ];
 
        
-        if(version_compare($current_app_version['st_value'], '0.0.2') > $app['app_version']){
+        if(version_compare($current_app_version['st_value'], $app['app_version']) > 0){
             $app_is_latest = FALSE;
         }
 
