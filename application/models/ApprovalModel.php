@@ -176,7 +176,8 @@ Class ApprovalModel extends CI_Model {
     }
 
 
-    $res = $this->db->from('approval_officials ao')->get();
+    $res = $this->db->from('approval_officials ao')->order_by('ao_title','ACS')->get();
+    
     
     
     if ($limit == 1 AND $res->num_rows() == 1) {

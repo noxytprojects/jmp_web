@@ -318,6 +318,7 @@ class Api extends CI_Controller {
         }
 
         $tr_id = $this->input->post('tr_id');
+        $usn = $ad_name;
 
         $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $tr_id], 1);
 
@@ -370,7 +371,7 @@ class Api extends CI_Controller {
             cus_json_error('Approval request was not sent.');
         }
 
-        $requestor_fcm_tokens = $this->fbm->getFirebaseTokens(['ft_token'], NULL, NULL, ['ft_user_id' => [$trip['sec_tl_ad_name']]]);
+        $requestor_fcm_tokens = $this->fbm->getFirebaseTokens(['ft_token'], NULL, NULL, ['ft_user_id' => [$driver['dp_ao_ad_name']]]);
 
         if ($requestor_fcm_tokens) {
             $payload = [
@@ -1031,13 +1032,19 @@ class Api extends CI_Controller {
         if (!$driver) {
             cus_json_error('Drivers profile not found.');
         }
+        
+        $line_managers = $this->approval->getApprovalOfficials(NULL, "ao.ao_title IS NOT NULL", $limit = null, $where_in = null);
+        
+        foreach ($line_managers as $key => $ln) {
+            $line_managers[$key]['ao_full_name'] = $ln['ao_title'] . ' - '.$ln['ao_full_name'];
+        }
 
         $json = [
             'status' => [
                 'error' => FALSE
             ],
             'driver_details' => $driver,
-            'line_managers' => $this->approval->getApprovalOfficials(),
+            'line_managers' => 
             'medical_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'MEDICAL_FITNESS', 'att.att_ref' => $ad_name]),
             'license_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'DRIVER_LICENSE', 'att.att_ref' => $ad_name])
         ];
