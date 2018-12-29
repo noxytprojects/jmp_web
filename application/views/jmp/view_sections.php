@@ -39,6 +39,7 @@
                         </div>
                     </div>
                 </div>
+                <!--
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="form-group" id="tl_ad_name">
@@ -70,7 +71,7 @@
                             <input type="text" name="tl_email" placeholder="Enter the Teamleader email address"  class="form-control" />
                         </div>
                     </div>
-                </div>
+                </div>-->
             </div>
             <div class="modal-footer">
                 <button type="button" data-dismiss="modal" class="btn btn-secondary pull-left">Close</button>
@@ -112,6 +113,7 @@
                         </div>
                     </div>
                 </div>
+                <!--
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="form-group" id="edit_tl_ad_name">
@@ -143,7 +145,7 @@
                             <input type="text" name="edit_tl_email" placeholder="Enter the Teamleader email address"  class="form-control" />
                         </div>
                     </div>
-                </div>
+                </div>-->
             </div>
             <div class="modal-footer">
                 <button type="button" data-dismiss="modal" class="btn btn-secondary pull-left">Close</button>
@@ -177,10 +179,11 @@
                                     <th style="width: 10px;">No.</th>
                                     <th>Section Name</th>
                                     <th>Department</th>
+                                    <!--
                                     <th>TL AD Name</th>
                                     <th>TL Full Name</th>
                                     <th>TL Phone</th>
-                                    <th>TL Email</th>
+                                    <th>TL Email</th>-->
                                     <th style="width: 10px"></th>
                                 </tr>
                             </thead>

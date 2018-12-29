@@ -7,10 +7,10 @@ $content_data['current_url'] = '?url='. urlencode(current_url()) .'?'.$_SERVER['
 
 // Profile Data Above Menu
 if ($this->usr->isLogedin()) {
-    $menu_data['full_name'] = $this->session->userdata['logged_in']['full_name'];
-    $menu_data['role'] = $this->session->userdata['logged_in']['role'];
-    $menu_data['ad_name'] = $this->session->userdata['logged_in']['ad_name'];
-    $menu_data['page'] = $this->session->userdata['logged_in']['page'];
+    $menu_data['full_name'] = $this->session->userdata['logged_in']['user_fullname'];
+    $menu_data['role'] = $this->session->userdata['logged_in']['user_role'];
+    $menu_data['ad_name'] = $this->session->userdata['logged_in']['user_ad_name'];
+    $menu_data['page'] = $this->session->userdata['logged_in']['user_page'];
 }
 
 

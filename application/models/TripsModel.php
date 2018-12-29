@@ -12,8 +12,8 @@ Class TripsModel extends CI_Model {
 
         $this->db->select($data['select_columns'])
                 ->from('trip_request tr')
-                ->join('drivers_profile dp', 'dp_ad_name = tr_ad_name', 'INNER')
-                ->join('approval ap', 'ap.ap_tr_id = tr.tr_id', 'LEFT OUTER');
+                ->join('users u','u.usr_id = tr.tr_usr_id')
+                ->join('drivers_profile dp', 'dp.dp_usr_id = tr.tr_usr_id', 'INNER');
 
         if ($data['where_in'] != NULL) {
             foreach ($data['where_in'] as $key => $wn) {
@@ -87,6 +87,9 @@ Class TripsModel extends CI_Model {
             case 'edit':
                 $this->db->where('tr_id', $data['tr_id'])->update('trip_request', $data['trip_data']);
                 $tr_id = $data['tr_id'];
+                $this->db->where('att_type','TRIP_REQUEST')->where('att_ref',$data['tr_id'])->where('att_status','1')->update('attachment',['att_ref' =>'0']);
+                $this->db->where('att_type','TRIP_REQUEST')->where('att_ref IS NULL')->where('att_status','0')->update('attachment',['att_ref' =>$tr_id,'att_status'=> '1']);
+                
                 break;
                 ;
 
@@ -101,6 +104,8 @@ Class TripsModel extends CI_Model {
                 $tr_id = false;
                 break;
         }
+        
+        
 
         $this->db->trans_complete();
 
@@ -136,11 +141,11 @@ Class TripsModel extends CI_Model {
         }
 
         $res = $this->db->from('trip_request tr')
-                        ->join('drivers_profile dp', 'dp_ad_name = tr_ad_name', 'INNER')
-                        ->join('approval_officials ao','ao.ao_ad_name = dp.dp_ao_ad_name')
+                        ->join('drivers_profile dp', 'dp.dp_usr_id = tr.tr_usr_id', 'INNER')
+                        ->join('users u','u.usr_id = dp.dp_usr_id')
                         ->join('department dept', 'dept.dept_id = dp.dp_dept_id')
-                        ->join('section sec', 'sec.sec_id = dp.dp_section_id')
-                        ->join('approval ap', 'ap.ap_tr_id = tr.tr_id', 'LEFT OUTER')->get();
+                        ->join('section sec', 'sec.sec_id = dp.dp_section_id')->get();
+                        //->join('approval ap', 'ap.ap_tr_id = tr.tr_id', 'LEFT OUTER')->get();
 
         if ($limit == 1 AND $res->num_rows() == 1) {
             return $res->row_array();

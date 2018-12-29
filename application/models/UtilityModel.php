@@ -5,7 +5,19 @@ Class UtilityModel extends CI_Model {
     public function __construct() {
         
     }
-
+    
+    public function removeTempFiles($uploads) {
+        
+        foreach ($uploads as  $upload) {
+            $path = './uploads/request/' . $upload['att_name'];
+            //Remove Image
+            if (file_exists($path)) {
+                unlink($path);
+            }
+            $this->removeFile($upload['att_id']);
+        }
+    }
+    
     public function getOptions($tagname) {
 
         $this->db->where('o.option_tag_name', $tagname);
@@ -25,9 +37,10 @@ Class UtilityModel extends CI_Model {
         $q = $this->db->get();
 
         if ($q->num_rows() == 1) {
-            return $q->row_array();
+            $st = $q->row_array();
+            return $st['st_value'];
         } else {
-            return FALSE;
+            return NULL;
         }
     }
 
@@ -230,7 +243,7 @@ Class UtilityModel extends CI_Model {
             $this->db->where($cond);
         }
         $res = $this->db
-                ->from('ycc_settings')
+                ->from('settings')
                 ->order_by('st_label')
                 ->get();
 
@@ -240,7 +253,7 @@ Class UtilityModel extends CI_Model {
     public function getSetInfo($st_id) {
 
         $this->db->where('st_id', $st_id);
-        $this->db->from('ycc_settings');
+        $this->db->from('settings');
         $this->db->limit(1);
 
         $q = $this->db->get();
@@ -254,7 +267,7 @@ Class UtilityModel extends CI_Model {
 
     public function saveEditSt($st_data, $st_id) {
 
-        $this->db->where('st_id', $st_id)->update('ycc_settings', $st_data);
+        $this->db->where('st_id', $st_id)->update('settings', $st_data);
         //log_message('ycc', $this->session->userdata['logged_in']['user_fullname'] . ' saveEditSt updated setting ' . $st_id);
         return $this->db->affected_rows();
     }

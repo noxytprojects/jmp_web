@@ -15,7 +15,6 @@
                 <?php
             }
             ?>
-
             <span class="badge badge-danger badge-pill"><?php echo $role; ?></span>
         </div>
     </div>
@@ -26,54 +25,33 @@
         <?php
         if (in_array($page, ['HOME'])) {
             ?>
+            <li class="<?php echo ($curr_menu == 'DASHBOARD') ? "active" : "" ?>"> <a href="<?php echo site_url('user/dashboard'); ?>"><i class="fa fa-dashboard"></i>Dashboard</a></li>
             <li class="<?php echo ($curr_menu == 'TRIP') ? "active" : "" ?>"><a href="#trip" aria-expanded="<?php echo ($curr_menu == 'TRIP') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-car"></i>Trip Request </a>
                 <ul id="trip" class="<?php echo ($curr_sub_menu == 'TRIP') ? "" : "collapse" ?> list-unstyled">
+                    <li><a href="<?php echo site_url('trip/requests'); ?>">Trip Requests</a></li>
+                    <li><a href="<?php echo site_url('trip/inbox'); ?>">Incoming Requests<?php if (count($inbox_count) > 0) { ?> <br/><span class="badge badge-danger"><?php echo count($inbox_count); ?> NEW</span><?php } ?></a></li>
+                    <li><a href="<?php echo site_url('trip/requesttrip'); ?>">Request Trip</a></li>
+                    <li><a href="<?php echo site_url('trip/myrequests'); ?>">My Trip Requests</a></li>
+                </ul>
+            </li>
 
-                    <?php
-                    if (in_array(strtolower($role), ['line manager', 'hod'])) {
-                        ?>
-                        <li><a href="<?php echo site_url('trip/requests'); ?>">Trip Requests</a></li>
-                        <li><a href="<?php echo site_url('trip/inbox'); ?>">Incoming Requests<!--<h5><span class="badge badge-danger">3 NEW</span></h5>--></a></li>
-                        <?php
-                    }
-
-                    if (strtolower($role) == 'driver') {
-                        ?>
-                        <li><a href="<?php echo site_url('trip/requesttrip'); ?>">Request Trip</a></li>
-                        <li><a href="<?php echo site_url('trip/myrequests'); ?>">My Trip Requests</a></li>
-                        <?php
-                    }
-                    ?>
-                    
+            <li class="<?php echo ($curr_menu == 'MANAGEMENT') ? "active" : ""; ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGEMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
+                <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGEMENT') ? "" : "collapse"; ?> list-unstyled">
+                    <li><a href="<?php echo site_url('management/departments'); ?>">Departments</a></li>
+                    <li><a href="<?php echo site_url('management/sections'); ?>">Sections</a></li>
+                    <li><a href="<?php echo site_url('user/userlist'); ?>">User Management</a></li>
+                    <li><a href="<?php echo site_url('management/sections'); ?>">Approval Officials</a></li>
+                    <li><a href="<?php echo site_url('utility/setlist'); ?>">System Parameters</a></li>
+                <!--<li><a href="<?php ?>">Administrators</a></li>-->
                 </ul>
             </li>
 
             <?php
-            if (in_array(strtolower($role), ['line manager', 'hod'])) {
-                ?>
-                <li class="<?php echo ($curr_menu == 'MANAGEMENT') ? "active" : ""; ?>"><a href="#mgt" aria-expanded="<?php echo ($curr_menu == 'MANAGEMENT') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-cogs"></i>Management </a>
-                    <ul id="mgt" class="<?php echo ($curr_sub_menu == 'MANAGEMENT') ? "" : "collapse"; ?> list-unstyled">
-                        <li><a href="<?php echo site_url('management/departments'); ?>">Departments</a></li>
-                        <li><a href="<?php echo site_url('management/sections'); ?>">Sections</a></li>
-                        <li><a href="<?php echo site_url('management/sections'); ?>">Approval Officials</a></li>
-                        <!--<li><a href="<?php ?>">Administrators</a></li>-->
-                    </ul>
-                </li>
-
-                <?php
-            }
         }
-        if (in_array($page, ['HOME', 'UPDATE_DRIVER_PROFILE']) AND strtolower($role) == 'driver') {
+        if (in_array($page, ['HOME', 'UPDATE_DRIVER_PROFILE'])) {
             ?>
             <li class="<?php echo ($curr_menu == 'DRIVER') ? "active" : "" ?>"><a href="#driver" aria-expanded="<?php echo ($curr_menu == 'DRIVER') ? "true" : "false" ?>" data-toggle="collapse"><i class="fa fa-user-circle"></i>Driver Profile </a>
                 <ul id="driver" class="<?php echo ($curr_sub_menu == 'DRIVER') ? "" : "collapse" ?> list-unstyled">
-                    <?php
-                    if (in_array($page, ['HOME'])) {
-                        ?>
-                        <!--<li><a href="<?php ?>">Driver Details</a></li>-->
-                        <?php
-                    }
-                    ?>
                     <li><a href="<?php echo site_url('driver/updateprofile'); ?>">Update Driver Profile</a></li>
                 </ul>
             </li>

@@ -36,8 +36,8 @@
 
                         <div class="col-md-6 col-sm-6">
                             <div class="form-group" id="distance">
-                                <label>Estimated Travelling Distance</label>
-                                <input autocomplete="off"  placeholder="Enter the estimated travelling distance"  class="form-control amount" name="distance"  value="">
+                                <label>Estimated Travelling Distance (KM)</label>
+                                <input autocomplete="off"  placeholder="Enter the estimated travelling distance in KM"  class="form-control amount" name="distance"  value="">
                             </div>
                         </div>
                         <div class="col-md-6 col-sm-12">

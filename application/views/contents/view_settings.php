@@ -13,7 +13,7 @@
 </div>
 
 <section class="tables no-padding-top">   
-    <div class="container-fluid" style="min-height:500px;">
+    <div class="container-fluid" >
         <br/>
         <br/>
         <div id="editSetting" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" class="modal fade text-left">

@@ -24,18 +24,8 @@
         <!-- Tweaks for older IEs--><!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
             <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
-        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-        
-        <script type="text/javascript">
-            $(document).ready(function(){
-                $('.form-group').click(function(){
-                    $(this).children('.rmv_error').remove();
-                });
-            });
-        </script>
     </head>
     <body>
-        
         <div class="page login-page">
             <div class="container d-flex align-items-center">
                 <div class="form-holder">
@@ -46,7 +36,7 @@
                             <div class="info d-flex align-items-center">
                                 <div class="content" style="display:block;width:100%;" >
                                     <div class="" style="width:170px;margin: 0 auto">
-                                        <img style="width:100%" src="<?php echo base_url(); ?>assets/img/jmp_logo.png"/>
+                                       <img style="width:100%" src="<?php echo base_url(); ?>assets/img/jmp_logo.png"/>
                                     </div>
 
                                 </div>
@@ -58,19 +48,13 @@
                                 <div class="content">
 
 
-                                    <form id="login-form" action="<?php echo site_url('user/submitotp'); ?>" method="post">
-                                        <div class="alert alert-info" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>Enter the OTP that we have sent to your mobile phone</div>
+                                    <form id="login-form" action="<?php echo site_url('user/submitmultipleloginattempt'); ?>" method="post">
+                                        <div class="alert alert-info" role="alert">System has detected that you have already logged in using a different browser. Choose whether you want to continue in this browser.</div>
                                         <?php echo $alert; ?>
                                         <br/>
-                                        <div class="form-group">
-                                            <input id="otp" autocomplete="off" type="text" name="otp" value="" required="" placeholder="Enter the OTP here" class="input-material">
-                                            <label for="otp" class="label-material active">PIN</label>
-                                            <?php echo form_error('otp'); ?>
-                                        </div>
-                                        
-                                        <button type="submit" id="login" class="btn btn-danger">Submit OTP</button>
+                                        <button type="submit" id="login" class="btn btn-danger">Continue With This Browser</button>
                                         <br/>
-                                        <a href="<?php echo site_url('user/logout');?>" class="">Logout</a>
+                                        <a href="<?php echo site_url('user/logout');?>" class="">Cancel</a>
                                     </form>
                                     <!--<a href="#" class="forgot-pass">Forgot Password?</a><br>-->
                                     <!--<small>Do not have an account? </small><a href="register.html" class="signup">Signup</a>-->
@@ -92,6 +76,13 @@
         <script src="<?php echo base_url(); ?>assets/vendor/jquery.cookie/jquery.cookie.js"></script>
         <script src="<?php echo base_url(); ?>assets/vendor/jquery-validation/jquery.validate.min.js"></script>
         <script src="<?php echo base_url(); ?>assets/js/front.js"></script>
-        
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('.form-group').click(function () {
+                    $(this).children('.rmv_error').remove();
+                });
+            });
+        </script>
     </body>
 </html>

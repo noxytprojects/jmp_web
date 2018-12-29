@@ -164,6 +164,11 @@ function cus_status_template($status) {
             $status_template = '<h5><span class="badge badge-info">NEW</span></h5>';
             break;
 
+        
+        case 'INPROGRESS':
+            $status_template = '<h5><span class="badge badge-danger">INPROGRESS</span></h5>';
+            break;
+        
         case 'PENDING':
             $status_template = '<h5><span class="badge badge-danger">PENDING</span></h5>';
             break;
@@ -236,4 +241,8 @@ function cus_ionic_color($status) {
     }
     
     return $status_template;
+}
+
+function cus_ellipsis($in, $lenght){
+    return strlen($in) > $lenght ? substr($in,0,$lenght)."..." : $in;;
 }

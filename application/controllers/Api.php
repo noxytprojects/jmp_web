@@ -29,7 +29,7 @@ class Api extends CI_Controller {
 
         $app_is_latest = TRUE;
 
-        $app_platform =  $this->input->post('app_platform');
+        $app_platform = $this->input->post('app_platform');
         $current_app_version = strtolower($app_platform) == 'ios' ? $this->utl->getSetValue('CURRENT_APP_VERSION_IOS') : $this->utl->getSetValue('CURRENT_APP_VERSION_ANDROID');
 
         $app = [
@@ -39,8 +39,8 @@ class Api extends CI_Controller {
             'app_package_name' => $this->input->post('app_package_name')
         ];
 
-       
-        if(version_compare($current_app_version['st_value'], $app['app_version']) > 0){
+
+        if (version_compare($current_app_version['st_value'], $app['app_version']) > 0) {
             $app_is_latest = FALSE;
         }
 
@@ -82,9 +82,9 @@ class Api extends CI_Controller {
 
         $_POST = json_decode(file_get_contents('php://input'), true);
 
-        $ad_name = $this->input->post('ad_name');
+        $user_id = $this->input->post('user_id');
 
-        $attachments = $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_status' => '0', 'att_ad_name' => $ad_name]);
+        $attachments = $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_status' => '0', 'att_usr_id' => $user_id]);
 
         if ($attachments) {
             $att_ids = array_column($attachments, "att_id");
@@ -106,7 +106,7 @@ class Api extends CI_Controller {
 
         $_POST = json_decode(file_get_contents('php://input'), true);
 
-        $ad_name = $this->input->post('ad_name');
+        $user_id = $this->input->post('user_id');
         $att_id = $this->input->post('att_id');
         $att_type = $this->input->post('att_type');
         $ref = null;
@@ -116,19 +116,19 @@ class Api extends CI_Controller {
         switch ($att_type) {
             case 'MEDICAL_FITNESS':
                 $attachment = $this->utl->getAttachments(NULL, ['att.att_type' => $att_type, 'att.att_id' => $att_id], 1);
-                $ref = $ad_name;
+                $ref = $user_id;
                 $path = FCPATH . 'uploads/medical/';
                 break;
 
             case 'DRIVER_LICENSE':
                 $attachment = $this->utl->getAttachments(NULL, ['att.att_type' => $att_type, 'att.att_id' => $att_id], 1);
-                $ref = $ad_name;
+                $ref = $user_id;
                 $path = FCPATH . 'uploads/license/';
                 break;
 
             case 'TRIP_REQUEST':
                 $attachment = $this->utl->getAttachments(NULL, ['att.att_type' => $att_type, 'att.att_id' => $att_id], 1);
-                $ref = $ad_name;
+                $ref = $user_id;
                 $path = FCPATH . 'uploads/request/';
                 break;
 
@@ -172,15 +172,15 @@ class Api extends CI_Controller {
         //set Content-Type to JSON
         header('Content-Type: application/json; charset=utf-8');
 
-        $ad_name = $this->uri->segment(4);
+        $user_id = $this->uri->segment(4);
 
-        if (!$this->usr->is_logged_in AND empty($ad_name)) {
+        if (!$this->usr->is_logged_in AND empty($user_id)) {
             $err = TRUE;
             $err_msg = MSG_EXPIRY_SESSION;
         }
 
-        if (empty($ad_name)) {
-            $ad_name = $this->usr->ad_name;
+        if (empty($user_id)) {
+            $user_id = $this->usr->user_id;
         }
 
         //$this->load->library('resize');
@@ -212,7 +212,7 @@ class Api extends CI_Controller {
                     'overwrite' => FALSE,
                     'encrypt_name' => TRUE
                 ];
-                $reference = $ad_name;
+                $reference = $user_id;
                 break;
 
             case 'TRIP_REQUEST':
@@ -236,7 +236,7 @@ class Api extends CI_Controller {
                     'overwrite' => FALSE,
                     'encrypt_name' => TRUE
                 ];
-                $reference = $ad_name;
+                $reference = $user_id;
                 break;
 
             default:
@@ -275,7 +275,7 @@ class Api extends CI_Controller {
                     'att_timestamp' => date('Y-m-d H:i:s'),
                     'att_og_name' => 'test',
                     'att_ref' => $reference,
-                    'att_ad_name' => $ad_name
+                    'att_usr_id' => $user_id
                 ]
             ];
 
@@ -311,15 +311,17 @@ class Api extends CI_Controller {
         header('Content-type: text/json');
 
 
-        if ($this->usr->ad_name == NULL) {
+        if ($this->usr->user_ad_name == NULL) {
             $_POST = json_decode(file_get_contents('php://input'), true);
-            $ad_name = $this->input->post('ad_name');
+            $user_id = $this->input->post('uder_id');
         } else {
-            $ad_name = $this->usr->ad_name;
+            $user_id = $this->usr->user_id;
         }
+        
+        $user = $this->usr->getUserInfo($user_id, 'ID');
 
         $tr_id = $this->input->post('tr_id');
-        $usn = $ad_name;
+        $usn = $user['usr_email'];
 
         $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $tr_id], 1);
 
@@ -328,12 +330,12 @@ class Api extends CI_Controller {
             cus_json_error('Trip request was not found or may have been removed from the system');
         }
 
-        if (!in_array(strtolower($trip['tr_status']), ['new', 'paused','pending'])) {
+        if (!in_array(strtolower($trip['tr_status']), ['new', 'paused', 'pending'])) {
             cus_json_error('Trip request is not in the right status to request for approval');
         }
 
 
-        $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_ad_name' => $ad_name], 1);
+        $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_usr_id' => $user['usr_id']], 1);
         if (!$driver) {
             cus_json_error('Your driver profile can not be found');
         }
@@ -343,7 +345,7 @@ class Api extends CI_Controller {
             //if request has no approval added yet
             $approval_data = [
                 'ap_tr_id' => $trip['tr_id'],
-                'ap_ad_name' => $driver['dp_ao_ad_name'],
+                'ap_usr_id' => $driver['usr_id'],
                 'ap_sent_time' => $timestamp,
                 'ap_status' => 'PENDING',
                 'ap_insert_time' => $timestamp
@@ -446,7 +448,7 @@ class Api extends CI_Controller {
 
         // get trip approvals
 
-        $approvals = $this->approval->getRequestApprovals(['ap.ap_comments','ao.ao_title', 'ao.ao_full_name sec_tl_full_name', 'ao.ao_email sec_tl_email', 'ap.ap_status', 'ap.ap_tr_id', 'ap.ap_ad_name'], ['ap.ap_tr_id' => $trip['tr_id']]);
+        $approvals = $this->approval->getRequestApprovals(['ap.ap_comments', 'ao.ao_title', 'ao.ao_full_name sec_tl_full_name', 'ao.ao_email sec_tl_email', 'ap.ap_status', 'ap.ap_tr_id', 'ap.ap_ad_name'], ['ap.ap_tr_id' => $trip['tr_id']]);
 
         foreach ($approvals as $key => $a) {
             $approvals[$key]['ap_comments'] = strip_tags($a['ap_comments']);
@@ -634,26 +636,32 @@ class Api extends CI_Controller {
 
         header('Access-Control-Allow-Origin: *');
         header('Content-type: text/json');
+        
+        $tr_id = 0;
         // Check user session status and the platform used
         if (!empty($_POST) && !$this->usr->is_logged_in) {
             $this->usr->setSessMsg(MSG_EXPIRY_SESSION, 'error', 'user');
         } elseif (empty($_POST)) {
             $_POST = json_decode(file_get_contents('php://input'), true);
-            $usn = $this->input->post('ad_name');
+            $user_id = $this->input->post('user_id');
         } else {
-            $usn = $this->usr->ad_name;
+            $user_id = $this->usr->user_id;
+            $tr_id = $this->input->post('tr_id');
         }
+        
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+        
+        $usn = $user['usr_email'];
 
-        $driver_ad_name = $this->input->post('driver_ad_name');
-        ;
+        $driver_user_id = $this->input->post('driver_usr_id');
 
-        $driver = $this->driver->getDriverProfiles(NULL, ['dp_ad_name' => $driver_ad_name], 1);
+        $driver = $this->driver->getDriverProfiles(NULL, ['dp_usr_id' => $driver_user_id], 1);
 
         if (!$driver) {
             cus_json_error('Driver profile was not found or it may have been removed from the system');
         }
 
-        if (strtolower($usn) != $driver['dp_ao_ad_name']) {
+        if (strtolower($user['usr_id']) == $driver['dp_usr_id']) {
             cus_json_error('Access denied');
         }
 
@@ -662,14 +670,22 @@ class Api extends CI_Controller {
         }
 
 
-        $res = $this->driver->updateDriverDetails(['driver_data' => ['dp_status' => 'APPROVED']], $driver['dp_ad_name']);
+        $res = $this->driver->updateDriverDetails(['driver_data' => ['dp_status' => 'APPROVED']], $driver['dp_usr_id']);
 
         if (!$res) {
             cus_json_error("Nothing was updated");
         }
 
 
-        echo json_encode(['status' => ['error' => FALSE]]);
+        $this->usr->setSessMsg('Driver profile updated successfully. You may now proceed with trip request approval.', 'success');
+        
+        echo json_encode([
+            'status' => [
+                'error' => FALSE, 
+                'redirect' => TRUE,
+                'redirect_url' => site_url('trip/previewrequest/' . $tr_id)
+                ]
+            ]);
     }
 
     public function submitApproveRequest() {
@@ -686,7 +702,7 @@ class Api extends CI_Controller {
             $trip_id = $this->input->post('tr_id');
             $usn = $this->input->post('ad_name');
         } else {
-            $usn = $this->usr->ad_name;
+            $usn = $this->usr->user_ad_name;
             $trip_id = $this->uri->segment(3);
         }
 
@@ -715,14 +731,14 @@ class Api extends CI_Controller {
         if (in_array(strtolower($approval_status['ap_status']), ['approved', 'disapproved'])) {
             cus_json_error('Looks like this trip request has been approved or dissaproved, Please review the details');
         }
-        
-        $driver = $this->driver->getDriverProfiles(['dp_status'], ['dp_ad_name' => $trip['tr_ad_name']], 1);
-        
-        if(!$driver){
+
+        $driver = $this->driver->getDriverProfiles(['dp_status'], ['dp_usr_id' => $trip['tr_usr_id']], 1);
+
+        if (!$driver) {
             cus_json_error('Driver profile was not found. Contact the system admin.');
         }
-        
-        if(in_array(strtolower($driver['dp_status']), ['pending'])){
+
+        if (in_array(strtolower($driver['dp_status']), ['pending'])) {
             cus_json_error('You should approve driver profile before approving this trip request.');
         }
 
@@ -817,7 +833,7 @@ class Api extends CI_Controller {
             $usn = $this->input->post('ad_name');
             $field = 'comment';
         } else {
-            $usn = $this->usr->ad_name;
+            $usn = $this->usr->user_ad_name;
             $trip_id = $this->uri->segment(3);
             $field = 'dis_comment';
         }
@@ -917,116 +933,7 @@ class Api extends CI_Controller {
         }
     }
 
-    public function submitLogin() {
-
-        header('Access-Control-Allow-Origin: *');
-        header('Content-type: text/json');
-
-        $_POST = json_decode(file_get_contents('php://input'), true);
-
-        $validations = [
-            ['field' => 'usn', 'label' => 'Username', 'rules' => 'trim|required|callback_validateUsn', 'errors' => ['required' => 'Username field is required']],
-            ['field' => 'pwd', 'label' => 'Password', 'rules' => 'trim|required|callback_validatePwd', 'errors' => ['required' => 'Password field is required']]
-        ];
-
-        $this->form_validation->set_rules($validations);
-
-        $usn = $this->input->post('usn');
-
-        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Attempting to login');
-
-        if ($this->form_validation->run() == FALSE) {
-            // Invalid inputs
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed login attempt');
-            echo json_encode([
-                'status' => [
-                    'error' => TRUE,
-                    'error_type' => 'fields_error',
-                    "form_errors" => validation_errors_array()
-                ]
-            ]);
-
-            die();
-        } else {
-
-
-
-            $user = [
-                'ad_name' => $this->input->post('usn'),
-                'phone_number' => "",
-                'full_name' => "",
-                'token' => sha1(rand(1111, 9999)),
-                'driver_details' => FALSE,
-                'role' => 'DRIVER',
-                'can_approve_requests' => FALSE,
-                'email' => ''
-            ];
-
-            $page = "";
-
-
-
-            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_ad_name' => $usn], 1);
-            $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $usn], 1);
-
-            if ($manager) {
-                $user['role'] = "MANAGER";
-                $user['can_approve_requests'] = TRUE;
-
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => user/submitLogin => ' . $usn . ' - Logon user is Line Manager');
-            }
-
-            if ($driver) {
-
-                // If user is driver
-                $driver_details = [
-                    "name" => $driver['dp_full_name'],
-                    "phone" => $driver["dp_phone_number"],
-                    "manager" => $driver['dp_ao_ad_name'],
-                    "medical_by_osha" => $driver['dp_medical_by_osha'],
-                    "medical_fitness_date" => $driver['dp_medical_date'],
-                    "email" => $driver["dp_email"],
-                    "dept" => $driver["dp_dept_id"],
-                    "section" => $driver["dp_section_id"],
-                    "license" => $driver["dp_license_number"],
-                    "license_expiry" => date('Y-m-d', strtotime($driver["dp_license_expiry"])),
-                    "licence_attachments" => [],
-                    "line_manager" => $driver['ao_full_name'] . ' - ' . $driver['ao_email'],
-                    "dept_section" => $driver['dept_name'] . ' - ' . $driver['sec_name']
-                ];
-
-                $user['ad_name'] = $driver['dp_ad_name'];
-                $user['phone_number'] = $driver['dp_phone_number'];
-                $user['full_name'] = $driver['dp_full_name'];
-                $user['driver_details'] = $driver_details;
-
-                $page = "HOME";
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is Driver');
-            } else {
-                $page = 'UPDATE_DRIVER_PROFILE';
-                log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Logon user is NEW so will have to update his/her driver profile');
-            }
-
-            $this->fbm->firebaseToken($usn);
-
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Successfull login attempt');
-
-            $json = [
-                'status' => [
-                    'error' => FALSE,
-                    'page' => $page,
-                ],
-                'user' => $user,
-                'line_managers' => $this->approval->getApprovalOfficials(),
-                'license_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'DRIVER_LICENSE', 'att.att_ref' => $usn]),
-                'medical_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'MEDICAL_FITNESS', 'att.att_ref' => $usn])
-            ];
-
-            echo json_encode($json);
-            die();
-        }
-    }
-
+    
     public function getDriverDetails() {
 
         header('Access-Control-Allow-Origin: *');
@@ -1034,20 +941,18 @@ class Api extends CI_Controller {
 
         $_POST = json_decode(file_get_contents('php://input'), true);
 
+        $user_id = $this->input->post('user_id');
 
-
-        $ad_name = $this->input->post('ad_name');
-
-        $driver = $this->driver->getDriverProfiles(NULL, ['dp_ad_name' => $ad_name], 1);
+        $driver = $this->driver->getDriverProfiles(NULL, ['dp_usr_id' => $user_id], 1);
 
         if (!$driver) {
             cus_json_error('Drivers profile not found.');
         }
-        
-        $line_managers = $this->approval->getApprovalOfficials(NULL, "ao.ao_title IS NOT NULL");
-        
+
+        $line_managers = $this->usr->getUsersList("usr_title IS NOT NULL AND usr_role IN ('ADMIN','MANAGER')", ['usr_title ao_email','usr_ad_name ao_ad_name','usr_fullname ao_full_name']);
+
         foreach ($line_managers as $key => $ln) {
-            $line_managers[$key]['ao_full_name'] = $ln['ao_title'] . ' - '.$ln['ao_full_name'];
+            $line_managers[$key]['ao_full_name'] = $ln['usr_title'] . ' - ' . $ln['usr_fullname'];
         }
 
         $json = [
@@ -1056,8 +961,8 @@ class Api extends CI_Controller {
             ],
             'driver_details' => $driver,
             'line_managers' => $line_managers,
-            'medical_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'MEDICAL_FITNESS', 'att.att_ref' => $ad_name]),
-            'license_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'DRIVER_LICENSE', 'att.att_ref' => $ad_name])
+            'medical_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'MEDICAL_FITNESS', 'att.att_ref' => $driver['dp_usr_id']]),
+            'license_attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'DRIVER_LICENSE', 'att.att_ref' => $driver['dp_usr_id']])
         ];
         echo json_encode($json);
         die();
@@ -1073,11 +978,15 @@ class Api extends CI_Controller {
         // If post variable is empty the request could be from mobile app
         if (empty($_POST)) {
             $_POST = json_decode(file_get_contents('php://input'), true);
-            $usn = $this->input->post('ad_name');
+            $user_id = $this->input->post('user_id');
         } else {
-            $usn = $this->usr->ad_name;
+            $user_id = $this->usr->user_id;
             $type = 'WEB';
         }
+        
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+        
+        $usn = $user['usr_email'];
 
         $validations = [
             ['field' => 'name', 'label' => 'driver full name', 'rules' => 'trim|required'],
@@ -1085,13 +994,13 @@ class Api extends CI_Controller {
             ['field' => 'email', 'label' => 'email address', 'rules' => 'trim|required|valid_email|callback_validateDriverEmail'],
             ['field' => 'dept', 'label' => 'department', 'rules' => 'trim|required'],
             ['field' => 'section', 'label' => 'section', 'rules' => 'trim|required'],
-            ['field' => 'medical_by_osha', 'label' => 'medical done by osha', 'rules' => 'trim|required|callback_validateYesNo'],
-            ['field' => 'medical_fitness_date', 'label' => 'medical fitness date', 'rules' => 'trim|callback_validateMedicalFitnessDate'],
-            ['field' => 'medical_file_attachment', 'label' => 'medical fitness report', 'rules' => 'callback_validateMedicalFile'],
+            //['field' => 'medical_by_osha', 'label' => 'medical done by osha', 'rules' => 'trim|required|callback_validateYesNo'],
+            //['field' => 'medical_fitness_date', 'label' => 'medical fitness date', 'rules' => 'trim|callback_validateMedicalFitnessDate'],
+            //['field' => 'medical_file_attachment', 'label' => 'medical fitness report', 'rules' => 'callback_validateMedicalFile'],
             ['field' => 'manager', 'label' => 'line manager', 'rules' => 'trim|required|callback_validateLineManager'],
             ['field' => 'license_attachment', 'label' => 'license attachment', 'rules' => 'callback_validateLicenseAttachment'],
             ['field' => 'license', 'label' => 'driver licence number', 'rules' => 'trim|required|callback_validateDriverLicence'],
-            ['field' => 'license_expiry', 'label' => 'license expiry date', 'rules' => 'trim|required'],
+            ['field' => 'license_expiry', 'label' => 'license expiry date', 'rules' => 'trim|required|callback_validateLicenseExpiry'],
         ];
 
         $this->form_validation->set_rules($validations);
@@ -1114,15 +1023,15 @@ class Api extends CI_Controller {
 
             $phone_number = $this->input->post('phone');
             $license_expiry = str_replace('/', '-', $this->input->post('license_expiry'));
-            $mf_date = str_replace('/', '-', $this->input->post('medical_fitness_date'));
+            //$mf_date = str_replace('/', '-', $this->input->post('medical_fitness_date'));
             $timestamp = date('Y-m-d H:i:d');
-            $medical_by_osha = $this->input->post('medical_by_osha');
+            //$medical_by_osha = $this->input->post('medical_by_osha');
 
 
 
 
-            $license_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'DRIVER_LICENSE', 'att_status' => '0', 'att_ref' => $usn]);
-            $medical_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'MEDICAL_FITNESS', 'att_status' => '0', 'att_ref' => $usn]);
+            $license_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'DRIVER_LICENSE', 'att_status' => '0', 'att_ref' => $user['usr_id']]);
+            $medical_attachments = $this->utl->getAttachments(NULL, ['att_type' => 'MEDICAL_FITNESS', 'att_status' => '0', 'att_ref' => $user['usr_id']]);
 
 
             $driver_data = [
@@ -1135,14 +1044,15 @@ class Api extends CI_Controller {
                 'dp_license_expiry' => date('Y-m-d', strtotime($license_expiry)),
                 'dp_updated_time' => $timestamp,
                 'dp_status' => 'PENDING',
-                'dp_ao_ad_name' => $this->input->post('manager'),
-                'dp_medical_by_osha' => $medical_by_osha,
-                'dp_medical_date' => strtolower($medical_by_osha) == 'yes' ? date('Y-m-d', strtotime($mf_date)) : NULL
+                'dp_ao_title' => $this->input->post('manager'),
+                    //'dp_medical_by_osha' => $medical_by_osha,
+                    //'dp_medical_date' => strtolower($medical_by_osha) == 'yes' ? date('Y-m-d', strtotime($mf_date)) : NULL
             ];
 
             $data = [
                 'driver_data' => $driver_data,
-                'ad_name' => $usn,
+                'user_id' => $user['usr_id'],
+                'user_email' => $user['usr_email'],
                 'timestamp' => $timestamp,
                 'license_attachments' => $license_attachments,
                 'medical_attachments' => $medical_attachments
@@ -1162,8 +1072,9 @@ class Api extends CI_Controller {
             log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - updated the driver profile successfully');
 
 
+
             // Get the driver info
-            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_ad_name' => $usn], 1);
+            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_usr_id' => $user['usr_id']], 1);
 
             if (!$driver) {
                 cus_json_error('Something went wrong please try again');
@@ -1174,7 +1085,7 @@ class Api extends CI_Controller {
             $driver_details = [
                 "name" => $driver['dp_full_name'],
                 "phone" => $driver["dp_phone_number"],
-                "manager" => $driver['dp_ao_ad_name'],
+                "manager" => $driver['dp_ao_title'],
                 "medical_by_osha" => $driver['dp_medical_by_osha'],
                 "medical_fitness_date" => $driver['dp_medical_date'],
                 "email" => $driver["dp_email"],
@@ -1183,48 +1094,28 @@ class Api extends CI_Controller {
                 "license" => $driver["dp_license_number"],
                 "license_expiry" => date('Y-m-d', strtotime($driver["dp_license_expiry"])),
                 "licence_attachments" => [],
-                "line_manager" => $driver['ao_full_name'] . ' - ' . $driver['ao_email'],
+                "line_manager" => $driver['usr_fullname'] . ' - ' . $driver['usr_title'],
                 "dept_section" => $driver['dept_name'] . ' - ' . $driver['sec_name']
             ];
 
 
 
 
-
-            $user = [
-                'ad_name' => $driver['dp_ad_name'],
-                'phone_number' => $driver['dp_phone_number'],
-                'full_name' => $driver['dp_full_name'],
-                'driver_details' => $driver_details,
-                'token' => sha1(rand(1111, 9999)),
-                'page' => 'HOME',
-                'role' => 'DRIVER',
-                'email' => $driver['dp_email']
-            ];
-
-
-
-            $manager = $this->approval->getApprovalOfficials(NULL, ['ao_ad_name' => $driver['dp_ad_name']], 1);
-
-            if ($manager) {
-                $user['role'] = "MANAGER";
-                $user['can_approve_requests'] = TRUE;
-            }
-
-
-
             $this->usr->setSessMsg('Driver profile updated successfully', 'success');
 
             if ($type == 'WEB') {
+                $user_session = $this->session->userdata['logged_in'];
+                $user_session['user_page'] = "HOME";
                 $this->usr->setSessMsg('Driver profile updated successfully', 'success');
-                $this->session->set_userdata(['logged_in' => $user]);
+                $this->session->set_userdata(['logged_in' => $user_session]);
             }
 
             $json = [
                 'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('driver/updateprofile')],
-                'user' => $user,
-                'line_managers' => $this->approval->getApprovalOfficials()
+                'driver_details' => $driver_details,
+                'line_managers' => $this->usr->getUsersList("usr_title IS NOT NULL AND usr_role IN ('ADMIN','MANAGER')", ['usr_title','usr_ad_name','usr_fullname']) 
             ];
+
             echo json_encode($json);
         }
     }
@@ -1237,10 +1128,14 @@ class Api extends CI_Controller {
         // If post variable is empty the request could be from mobile app
         if (empty($_POST)) {
             $_POST = json_decode(file_get_contents('php://input'), true);
-            $usn = $this->input->post('ad_name');
+            $user_id = $this->input->post('user_id');
         } else {
-            $usn = $this->usr->ad_name;
+            $user_id = $this->usr->user_id;
         }
+        
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+        
+        $usn = $user['usr_email'];
 
         $edit_id = $this->input->post('edit_id');
 
@@ -1248,7 +1143,7 @@ class Api extends CI_Controller {
         // Check if its in edit mode
         if (!empty($edit_id)) {
 
-            $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $edit_id, 'tr.tr_ad_name' => $this->usr->ad_name], 1);
+            $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $edit_id, 'tr.tr_usr_id' => $user['usr_id']], 1);
 
             if (!$trip) {
                 cus_json_error('Trip was not found or may have been removed from the system');
@@ -1262,9 +1157,7 @@ class Api extends CI_Controller {
         } else {
             $mode = 'add';
         }
-
         $validations = [
-            ['field' => 'file', 'label' => 'attachment', 'rules' => 'callback_validateAttachment'],
             ['field' => 'journey_purpose', 'label' => 'journey purpose', 'rules' => 'trim|required'],
             ['field' => 'vehicle_reg_number', 'label' => 'vehicle registration number', 'rules' => 'trim|required'],
             //['field' => 'medical_by_osha', 'label' => 'medical done by osha', 'rules' => 'trim|required', 'errors' => ['required' => 'You should select whether driver medical fitness assessment has done by OSHA']],
@@ -1282,6 +1175,10 @@ class Api extends CI_Controller {
             ['field' => 'stop_locations', 'label' => 'stop locations and reason', 'rules' => 'trim'],
             ['field' => 'distance', 'label' => 'distance covered', 'rules' => 'trim|required|numeric|callback_validateDistance']
         ];
+
+        if ($mode == 'add') {
+            $validations[] = ['field' => 'file', 'label' => 'attachment', 'rules' => 'callback_validateAttachment'];
+        }
 
         $this->form_validation->set_rules($validations);
 
@@ -1306,7 +1203,8 @@ class Api extends CI_Controller {
             die();
         } else {
 
-            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_ad_name' => $usn], 1);
+            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_usr_id' => $user['usr_id']], 1);
+
 
             if (!$driver) {
                 cus_json_error("Driver profile not exist");
@@ -1322,10 +1220,18 @@ class Api extends CI_Controller {
             $dispatch_time = str_replace('/', '-', $this->input->post('dispatch_time'));
             $arrival_time = str_replace('/', '-', $this->input->post('arraival_time'));
 
+
+            $ma = $this->driver->getDriverMedicalAssessment(["ma.ma_date"], "ma.ma_date <='" . date('Y-m-d', strtotime($arrival_time)) . "'", 1);
+            $dp = $this->driver->getDriverProfiles(["dp.dp_license_number"], "dp.dp_license_number <= '" . date('Y-m-d', strtotime($arrival_time)) . "'", 1);
+
+            if (!$dp) {
+                cus_json_error("Driver licence is not valid to be used for the selected date");
+            }
+
             $trip_data = [
                 'tr_journey_purpose' => $this->input->post('journey_purpose'),
                 'tr_vehicle_reg_no' => $this->input->post('vehicle_reg_number'),
-                'tr_medical_by_osha' => $driver['dp_medical_by_osha'],
+                'tr_medical_by_osha' => $ma ? 'YES' : 'NO', //$driver['dp_medical_by_osha']
                 'tr_reason_finish_after_17' => $reason_finish_after_17,
                 'tr_work_finish_time' => $work_finish_time,
                 'tr_vehicle_type' => $this->input->post('vehicle_type'),
@@ -1340,11 +1246,11 @@ class Api extends CI_Controller {
                 'tr_stop_locations' => $this->input->post('stop_locations'),
                 'tr_distance' => (int) $this->input->post('distance'),
                 'tr_timestamp' => date('Y-m-d H:i:s'),
-                'tr_status' => 'NEW',
-                'tr_ad_name' => $usn
+                'tr_status' => 'PAUSED',
+                'tr_usr_id' => $user['usr_id']
             ];
 
-            $data = ['trip_data' => $trip_data, 'mode' => $mode, 'tr_id' => $edit_id];
+            $data = ['trip_data' => $trip_data, 'mode' => $mode, 'tr_id' => $edit_id, 'ma' => $ma];
             log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Saving trip data : ' . json_encode($data));
 
             $res = $this->trip->saveTrip($data);
@@ -1391,16 +1297,18 @@ class Api extends CI_Controller {
     public function validateDriverEmail($email) {
 
         if ($this->usr->is_logged_in) {
-            $usn = $this->usr->ad_name;
+            $user_id = $this->usr->user_id;
         } else {
-            $usn = $this->input->post('ad_name');
+            $user_id = $this->input->post('user_id');
         }
+
+        $user = $this->usr->getUserInfo($user_id,'ID');
 
         if (empty($email)) {
             return TRUE;
         }
 
-        $driver = $this->driver->getDriverProfiles(NULL, ['dp_ad_name <>' => $usn, 'dp_email' => $email], 1);
+        $driver = $this->driver->getDriverProfiles(NULL, ['dp_usr_id <>' => $user['usr_id'], 'dp_email' => $email], 1);
         if ($driver) {
             $this->form_validation->set_message('validateDriverEmail', 'Email address is being used by other driver');
             return FALSE;
@@ -1412,17 +1320,19 @@ class Api extends CI_Controller {
     public function validateDriverPhoneNumber($phone) {
 
         if ($this->usr->is_logged_in) {
-            $usn = $this->usr->ad_name;
+            $user_id = $this->usr->user_id;
         } else {
-            $usn = $this->input->post('ad_name');
+            $user_id = $this->input->post('user_id');
         }
 
+        $user = $this->usr->getUserInfo($user_id,'ID');
+     
 
         if (empty($phone)) {
             return TRUE;
         }
 
-        $driver = $this->driver->getDriverProfiles(NULL, ['dp_ad_name <>' => $usn, 'dp_phone_number' => cus_phone_with_255($phone)], 1);
+        $driver = $this->driver->getDriverProfiles(NULL, ['dp_usr_id <>' => $user['usr_id'], 'dp_phone_number' => cus_phone_with_255($phone)], 1);
 
         if ($driver) {
             $this->form_validation->set_message('validateDriverPhoneNumber', 'Phone number  is being used by other driver');
@@ -1434,15 +1344,17 @@ class Api extends CI_Controller {
     public function validateDriverLicence($license) {
 
         if ($this->usr->is_logged_in) {
-            $usn = $this->usr->ad_name;
+            $user_id = $this->usr->user_id;
         } else {
-            $usn = $this->input->post('ad_name');
+            $user_id = $this->input->post('user_id');
         }
+
+        $user = $this->usr->getUserInfo($user_id,'ID');
 
         if (empty($license)) {
             return TRUE;
         }
-        $driver = $this->driver->getDriverProfiles(NULL, ['dp_ad_name <>' => $usn, 'dp_license_number' => $license], 1);
+        $driver = $this->driver->getDriverProfiles(NULL, ['dp_usr_id <>' => $user['usr_id'], 'dp_license_number' => $license], 1);
         if ($driver) {
             $this->form_validation->set_message('validateDriverLicence', 'License number is being used by other driver');
             return FALSE;
@@ -1452,16 +1364,21 @@ class Api extends CI_Controller {
 
     public function validateLicenseExpiry($license_expiry) {
 
-        $usn = $this->input->post('ad_name');
-
-        if (empty($license)) {
+        //$user_id = $this->input->post('user_id');
+        if (empty($license_expiry)) {
             return TRUE;
         }
+        
+        $license_expiry = str_replace('/', '-', $license_expiry);
 
-        if (time() > strtotime($time)) {
-            $this->form_validation->set_message('validateDriverLicence', 'License number is being used by other driver');
+        if (time() > strtotime($license_expiry)) {
+            $this->form_validation->set_message(__FUNCTION__, 'License is already expired');
             return FALSE;
         }
+        return TRUE;
+    }
+    
+    public function validateLicense($license) {
         return TRUE;
     }
 
@@ -1630,15 +1547,17 @@ class Api extends CI_Controller {
         $md_by_osha = $this->input->post('medical_by_osha');
 
 
-        $ad_name = $this->usr->ad_name;
+        $ad_name = $this->usr->user_email;
+
         if (empty($ad_name)) {
             $ad_name = $this->input->post('ad_name');
         }
 
+        $user = $this->usr->getAnymousUser($ad_name);
 
         if (in_array($md_by_osha, ['YES'])) {
 
-            $attachments = $this->utl->getAttachments(NULL, ['att_type' => 'MEDICAL_FITNESS', 'att_ref' => $ad_name]);
+            $attachments = $this->utl->getAttachments(NULL, ['att_type' => 'MEDICAL_FITNESS', 'att_ref' => $user['usr_ad_name']]);
             if (count($attachments) == 0) {
                 $this->form_validation->set_message(__FUNCTION__, 'If attended medical fitness you should attach a file');
                 return FALSE;
@@ -1650,12 +1569,15 @@ class Api extends CI_Controller {
 
     public function validateLicenseAttachment() {
 
-        $ad_name = $this->usr->ad_name;
-        if (empty($ad_name)) {
-            $ad_name = $this->input->post('ad_name');
+        $user_id = $this->usr->user_id;
+        
+        if (empty($user_id)) {
+            $user_id = $this->input->post('user_id');
         }
 
-        $attachments = $this->utl->getAttachments(NULL, ['att_type' => 'DRIVER_LICENSE', 'att_ref' => $ad_name]);
+        $user = $this->usr->getUserInfo($user_id,'ID');
+
+        $attachments = $this->utl->getAttachments(NULL, ['att_type' => 'DRIVER_LICENSE', 'att_ref' => $user['usr_id']]);
         if (count($attachments) == 0) {
             $this->form_validation->set_message(__FUNCTION__, 'You should attach a copy of drivers license');
             return FALSE;
@@ -1684,8 +1606,8 @@ class Api extends CI_Controller {
             return TRUE;
         }
 
-        $ao = $this->approval->getApprovalOfficials(NULL, ['ao.ao_ad_name' => $line_manager], 1);
-
+        $ao = $this->usr->getUsersList(['usr_title' => $line_manager], ['usr_title'], 1);
+        
         if (!$ao) {
             $this->form_validation->set_message('Select a valid line manager');
             return FALSE;
@@ -1695,12 +1617,15 @@ class Api extends CI_Controller {
 
     public function validateAttachment() {
 
-        $ad_name = $this->usr->ad_name;
+        $ad_name = $this->usr->user_email;
         if (empty($ad_name)) {
             $ad_name = $this->input->post('ad_name');
         }
 
-        $attachment = $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_status' => '0', 'att.att_ad_name' => $ad_name]);
+        $user = $this->usr->getAnymousUser($ad_name);
+
+
+        $attachment = $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_status' => '0', 'att.att_usr_id' => $user['usr_id']]);
 
         if (!$attachment) {
             $this->form_validation->set_message(__FUNCTION__, 'Attachment is required.');

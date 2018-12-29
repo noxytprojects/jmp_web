@@ -21,6 +21,7 @@
                             </div>
                         </div>
                     </div>
+                    <!--
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="form-group" id="hod_ad_name">
@@ -52,7 +53,7 @@
                                 <input type="text" name="hod_email" placeholder="Enter the HOD email address"  class="form-control" />
                             </div>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
                 <div class="modal-footer">
                     <button type="button" data-dismiss="modal" class="btn btn-secondary pull-left">Close</button>
@@ -77,6 +78,7 @@
                             </div>
                         </div>
                     </div>
+                    <!--
                     <div class="row">
                         <div class="col-lg-12">
                             <div class="form-group" id="edit_hod_ad_name">
@@ -108,7 +110,7 @@
                                 <input type="text" name="edit_hod_email" placeholder="Enter the HOD email address"  class="form-control" />
                             </div>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
                 <div class="modal-footer">
                     <button type="button" data-dismiss="modal" class="btn btn-secondary pull-left">Close</button>
@@ -141,10 +143,12 @@
                                 <tr>
                                     <th style="width: 10px;">No.</th>
                                     <th>Department Name</th>
+                                    <!--
                                     <th>HOD AD Name</th>
                                     <th>HOD Full Name</th>
                                     <th>HOD Phone</th>
                                     <th>HOD Email</th>
+                                    -->
                                     <th style="width: 10px"></th>
                                 </tr>
                             </thead>

@@ -104,11 +104,11 @@
                                         ?>
                                         <option 
                                         <?php
-                                        if ($manager['ao_ad_name'] == $driver['dp_ao_ad_name']) {
+                                        if ($manager['usr_title'] == $driver['dp_ao_title']) {
                                             echo ' selected ';
                                         }
                                         ?>
-                                            value="<?php echo $manager['ao_ad_name']; ?>"><?php echo $manager['ao_full_name'] . ' - ' . $manager['ao_email']; ?></option>
+                                            value="<?php echo $manager['usr_title']; ?>"><?php echo $manager['usr_fullname'] . ' - ' . $manager['usr_title']; ?></option>
                                             <?php
                                         }
                                         ?>
@@ -117,7 +117,10 @@
                         </div>
 
                         <div class="col-md-6 col-sm-6">
+                           
+                            <!--
                             <div class="form-group" id="medical_by_osha">
+                                
                                 <label>Driver Medical Fitness Assessment Done By OSHA</label>
                                 <div class="i-checks">
                                     <input id="oshayes" type="radio" <?php echo $driver['dp_medical_by_osha'] == 'YES' ? 'checked' : ''; ?> value="YES" name="medical_by_osha" class="radio-template">
@@ -127,14 +130,12 @@
                                     <input id="oshano" type="radio" <?php echo $driver['dp_medical_by_osha'] == 'NO' ? 'checked' : ''; ?> value="NO" name="medical_by_osha" class="radio-template">
                                     <label for="oshano">NO</label>
                                 </div>
-                            </div>
+                            </div>-->
                         </div>
 
                     </div>
-
+                    <!--
                     <div class="row">
-
-
                         <div class="col-md-6 col-sm-6 <?php echo $driver['dp_medical_by_osha'] == 'YES' ? '' : ' hide '; ?>" id="mf_date">
                             <div class="form-group" id="medical_fitness_date">
                                 <label>Medical Fitness Assessment Date</label>
@@ -214,7 +215,7 @@
                             </div>
                         </div>
 
-                    </div>
+                    </div>-->
                     <br/>
                     <h1 class="h5">Licence Details</h1>
                     <div class="row">
@@ -348,12 +349,13 @@ if (strtolower($driver['dp_medical_by_osha']) == 'yes') {
             maxFiles: 3,
         });
 
-        var myDropzone2 = new Dropzone('div#uploadmedical', {url: '<?php echo site_url('api/upload/MEDICAL_FITNESS'); ?>',
+        /*
+        var myDropzone2 = new Dropzone('div#uploadmedical', {url: '<?php //echo site_url('api/upload/MEDICAL_FITNESS'); ?>',
             parallelUploads: 100,
             maxFiles: 3,
-        });
+        });*/
 
-        //        Drop zone on error
+        //  Drop zone on error
         myDropzone1.on("error", function (file, message, xhr) {
 
             var header = xhr.status + ": " + xhr.statusText;
@@ -412,6 +414,8 @@ if (strtolower($driver['dp_medical_by_osha']) == 'yes') {
         });
 
 
+        /*
+
         //        Drop zone on error
         myDropzone2.on("error", function (file, message, xhr) {
 
@@ -468,7 +472,7 @@ if (strtolower($driver['dp_medical_by_osha']) == 'yes') {
 
             });
 
-        });
+        });*/
 
 
         $('.removetempfile').click(function (e) {

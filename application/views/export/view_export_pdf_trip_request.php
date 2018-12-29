@@ -79,7 +79,7 @@
                         <td >Contacts</td>
                         <td style="min-width:150px;"><strong><?php echo $trip['dp_phone_number']; ?><br/><?php echo $trip['dp_email']; ?></strong></td>
                         <td>Line Manager Name And <br/>Contact No</td>
-                        <td style="min-width:150px;"><strong><?php echo $trip['sec_tl_full_name']; ?><br/><?php echo $trip['sec_tl_phone_number']; ?><br/><?php echo $trip['sec_tl_email']; ?></strong></td>
+                        <td style="min-width:150px;"><strong><?php echo $trip['usr_fullname']; ?><br/><?php echo $trip['usr_phone']; ?><br/><?php echo $trip['usr_email']; ?></strong></td>
                     </tr>
                     <tr>
                         <td>Driving License Number</td>

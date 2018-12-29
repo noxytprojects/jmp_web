@@ -62,10 +62,10 @@ class Management extends CI_Controller {
             $row[] = $no;
 
             $row[] = '<div nowrap="nowrap">' . strtoupper($a->dept_name) . '<div>';
-            $row[] = '<div nowrap="nowrap">' . $a->dept_hod_ad_name . '<div>';
-            $row[] = '<div nowrap="nowrap"><b>' . ucwords($a->dept_hod_full_name) . '</b></div>';
-            $row[] = '<div nowrap="nowrap">' . $a->dept_hod_phone . '</div>';
-            $row[] = '<div nowrap="nowrap">' . $a->dept_hod_email . '</div>';
+            //$row[] = '<div nowrap="nowrap">' . $a->dept_hod_ad_name . '<div>';
+            //$row[] = '<div nowrap="nowrap"><b>' . ucwords($a->dept_hod_full_name) . '</b></div>';
+            //$row[] = '<div nowrap="nowrap">' . $a->dept_hod_phone . '</div>';
+            //$row[] = '<div nowrap="nowrap">' . $a->dept_hod_email . '</div>';
             $row[] = $links;
             $data[] = $row;
         }
@@ -213,10 +213,10 @@ class Management extends CI_Controller {
 
             $row[] = '<div nowrap="nowrap">' . strtoupper($a->sec_name) . '<div>';
             $row[] = '<div nowrap="nowrap">' . strtoupper($a->dept_name) . '<div>';
-            $row[] = '<div nowrap="nowrap">' . $a->sec_tl_ad_name . '<div>';
-            $row[] = '<div nowrap="nowrap"><b>' . ucwords($a->sec_tl_full_name) . '</b></div>';
-            $row[] = '<div nowrap="nowrap">' . $a->sec_tl_phone_number . '</div>';
-            $row[] = '<div nowrap="nowrap">' . $a->sec_tl_email . '</div>';
+            //$row[] = '<div nowrap="nowrap">' . $a->sec_tl_ad_name . '<div>';
+            //$row[] = '<div nowrap="nowrap"><b>' . ucwords($a->sec_tl_full_name) . '</b></div>';
+            //$row[] = '<div nowrap="nowrap">' . $a->sec_tl_phone_number . '</div>';
+            //$row[] = '<div nowrap="nowrap">' . $a->sec_tl_email . '</div>';
             $row[] = $links;
             $data[] = $row;
         }
@@ -244,11 +244,11 @@ class Management extends CI_Controller {
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_departments',
-            'menu_data' => ['curr_menu' => 'MANAGEMENT', 'curr_sub_menu' => 'MANAGEMENT'],
+            'menu_data' => ['curr_menu' => 'MANAGEMENT', 'curr_sub_menu' => 'MANAGEMENT','inbox_count' => $this->usr->getInbox()],
             'content_data' => ['module_name' => 'Manage Departments'],
             'header_data' => [],
             'footer_data' => [],
-            'top_bar_data' => []
+            'top_bar_data' => ['inbox' => $this->usr->getInbox(),]
         ];
 
         $this->load->view('view_base', $data);
@@ -263,14 +263,14 @@ class Management extends CI_Controller {
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_sections',
-            'menu_data' => ['curr_menu' => 'MANAGEMENT', 'curr_sub_menu' => 'MANAGEMENT'],
+            'menu_data' => ['curr_menu' => 'MANAGEMENT', 'curr_sub_menu' => 'MANAGEMENT','inbox_count' => $this->usr->getInbox()],
             'content_data' => [
                 'module_name' => 'Manage Sections',
                 'depts' => $this->mnt->getDepartments()
             ],
             'header_data' => [],
             'footer_data' => [],
-            'top_bar_data' => []
+            'top_bar_data' => ['inbox' => $this->usr->getInbox(),]
         ];
 
         $this->load->view('view_base', $data);
@@ -287,14 +287,14 @@ class Management extends CI_Controller {
             cus_json_error(MSG_EXPIRY_SESSION);
         }
 
-        $usn = $this->usr->ad_name;
+        $usn = $this->usr->user_email;
 
         $validations = [
                 ['field' => 'dept_name', 'label' => 'department name', 'rules' => 'trim|required'],
-                ['field' => 'hod_ad_name', 'label' => 'HOD AD name', 'rules' => 'trim|required|is_unique[' . $this->db->dbprefix . 'department.dept_hod_ad_name]', 'errors' => ['is_unique' => 'HOD AD name is already in use.']],
-                ['field' => 'hod_full_name', 'label' => 'HOD full name', 'rules' => 'trim|required'],
-                ['field' => 'hod_phone', 'label' => 'HOD phone number', 'rules' => 'trim|required|callback_validateHODPhoneNumber|is_unique[' . $this->db->dbprefix . 'department.dept_hod_phone]', 'errors' => ['is_unique' => 'HOD Phone number is already in use.']],
-                ['field' => 'hod_email', 'label' => 'HOD email address', 'rules' => 'trim|required|valid_email|is_unique[' . $this->db->dbprefix . 'department.dept_hod_ad_email]', 'errors' => ['is_unique' => 'HOD email address is already in use.']]
+               // ['field' => 'hod_ad_name', 'label' => 'HOD AD name', 'rules' => 'trim|required|is_unique[' . $this->db->dbprefix . 'department.dept_hod_ad_name]', 'errors' => ['is_unique' => 'HOD AD name is already in use.']],
+               // ['field' => 'hod_full_name', 'label' => 'HOD full name', 'rules' => 'trim|required'],
+               // ['field' => 'hod_phone', 'label' => 'HOD phone number', 'rules' => 'trim|required|callback_validateHODPhoneNumber|is_unique[' . $this->db->dbprefix . 'department.dept_hod_phone]', 'errors' => ['is_unique' => 'HOD Phone number is already in use.']],
+                //['field' => 'hod_email', 'label' => 'HOD email address', 'rules' => 'trim|required|valid_email|is_unique[' . $this->db->dbprefix . 'department.dept_hod_ad_email]', 'errors' => ['is_unique' => 'HOD email address is already in use.']]
         ];
 
         $this->form_validation->set_rules($validations);
@@ -318,10 +318,10 @@ class Management extends CI_Controller {
             $phone = $this->input->post('hod_phone');
             $dept_data = [
                 'dept_name' => $this->input->post('dept_name'),
-                'dept_hod_full_name' => $this->input->post('hod_full_name'),
-                'dept_hod_ad_name' => $this->input->post('hod_ad_name'),
-                'dept_hod_email' => $this->input->post('hod_email'),
-                'dept_hod_phone' => cus_phone_with_255($phone),
+                //'dept_hod_full_name' => $this->input->post('hod_full_name'),
+                //'dept_hod_ad_name' => $this->input->post('hod_ad_name'),
+                //'dept_hod_email' => $this->input->post('hod_email'),
+                //'dept_hod_phone' => cus_phone_with_255($phone),
                 'dept_status' => 'ACTIVE'
             ];
 
@@ -353,15 +353,15 @@ class Management extends CI_Controller {
             cus_json_error(MSG_EXPIRY_SESSION);
         }
 
-        $usn = $this->usr->ad_name;
+        $usn = $this->usr->user_email;
 
         $validations = [
                 ['field' => 'sec_name', 'label' => 'section name', 'rules' => 'trim|required'],
                 ['field' => 'sec_dept', 'label' => 'section department', 'rules' => 'trim|required'],
-                ['field' => 'tl_ad_name', 'label' => 'Teamleader AD name', 'rules' => 'trim|required|is_unique[' . $this->db->dbprefix . 'section.sec_tl_ad_name]', 'errors' => ['is_unique' => 'Teamleader AD name is already in use.']],
-                ['field' => 'tl_full_name', 'label' => 'Teamleader full name', 'rules' => 'trim|required'],
-                ['field' => 'tl_phone', 'label' => 'Teamleader phone number', 'rules' => 'trim|required|callback_validateTlPhoneNumber|is_unique[' . $this->db->dbprefix . 'section.sec_tl_phone_number]', 'errors' => ['is_unique' => 'Teamleader Phone number is already in use.']],
-                ['field' => 'tl_email', 'label' => 'Teamleader email address', 'rules' => 'trim|required|valid_email|is_unique[' . $this->db->dbprefix . 'section.sec_tl_email]', 'errors' => ['is_unique' => 'Teamleader email address is already in use.']]
+                //['field' => 'tl_ad_name', 'label' => 'Teamleader AD name', 'rules' => 'trim|required|is_unique[' . $this->db->dbprefix . 'section.sec_tl_ad_name]', 'errors' => ['is_unique' => 'Teamleader AD name is already in use.']],
+                //['field' => 'tl_full_name', 'label' => 'Teamleader full name', 'rules' => 'trim|required'],
+                //['field' => 'tl_phone', 'label' => 'Teamleader phone number', 'rules' => 'trim|required|callback_validateTlPhoneNumber|is_unique[' . $this->db->dbprefix . 'section.sec_tl_phone_number]', 'errors' => ['is_unique' => 'Teamleader Phone number is already in use.']],
+                //['field' => 'tl_email', 'label' => 'Teamleader email address', 'rules' => 'trim|required|valid_email|is_unique[' . $this->db->dbprefix . 'section.sec_tl_email]', 'errors' => ['is_unique' => 'Teamleader email address is already in use.']]
         ];
 
         $this->form_validation->set_rules($validations);
@@ -382,14 +382,14 @@ class Management extends CI_Controller {
             die();
         } else {
 
-            $phone = $this->input->post('tl_phone');
+            //$phone = $this->input->post('tl_phone');
             $sec_data = [
                 'sec_name' => $this->input->post('sec_name'),
                 'sec_dept_id' => $this->input->post('sec_dept'),
-                'sec_tl_ad_name' => $this->input->post('tl_ad_name'),
-                'sec_tl_full_name' => $this->input->post('tl_full_name'),
-                'sec_tl_email' => $this->input->post('tl_email'),
-                'sec_tl_phone_number' => cus_phone_with_255($phone)
+                //'sec_tl_ad_name' => $this->input->post('tl_ad_name'),
+                //'sec_tl_full_name' => $this->input->post('tl_full_name'),
+                //'sec_tl_email' => $this->input->post('tl_email'),
+                //'sec_tl_phone_number' => cus_phone_with_255($phone)
             ];
 
             $res = $this->mnt->saveSection(['sec_data' => $sec_data]);
@@ -419,7 +419,7 @@ class Management extends CI_Controller {
         if (!$this->usr->is_logged_in) {
             cus_json_error(MSG_EXPIRY_SESSION);
         }
-        $usn = $this->usr->ad_name;
+        $usn = $this->usr->user_email;
 
         $dept_id = $this->uri->segment(3);
 
@@ -431,10 +431,10 @@ class Management extends CI_Controller {
 
         $validations = [
                 ['field' => 'edit_dept_name', 'label' => 'department name', 'rules' => 'trim|required'],
-                ['field' => 'edit_hod_ad_name', 'label' => 'HOD AD name', 'rules' => 'trim|required|callback_validateEditHODAdName'],
-                ['field' => 'edit_hod_full_name', 'label' => 'HOD full name', 'rules' => 'trim|required'],
-                ['field' => 'edit_hod_phone', 'label' => 'HOD phone number', 'rules' => 'trim|required|callback_validateEditHODPhoneNumber'],
-                ['field' => 'edit_hod_email', 'label' => 'HOD email address', 'rules' => 'trim|required|valid_email|callback_validateEditHODEmail']
+                //['field' => 'edit_hod_ad_name', 'label' => 'HOD AD name', 'rules' => 'trim|required|callback_validateEditHODAdName'],
+                //['field' => 'edit_hod_full_name', 'label' => 'HOD full name', 'rules' => 'trim|required'],
+                //['field' => 'edit_hod_phone', 'label' => 'HOD phone number', 'rules' => 'trim|required|callback_validateEditHODPhoneNumber'],
+                //['field' => 'edit_hod_email', 'label' => 'HOD email address', 'rules' => 'trim|required|valid_email|callback_validateEditHODEmail']
         ];
 
         $this->form_validation->set_rules($validations);
@@ -458,10 +458,10 @@ class Management extends CI_Controller {
             $phone = $this->input->post('edit_hod_phone');
             $dept_data = [
                 'dept_name' => $this->input->post('edit_dept_name'),
-                'dept_hod_full_name' => $this->input->post('edit_hod_full_name'),
-                'dept_hod_ad_name' => $this->input->post('edit_hod_ad_name'),
-                'dept_hod_email' => $this->input->post('edit_hod_email'),
-                'dept_hod_phone' => cus_phone_with_255($phone)
+                //'dept_hod_full_name' => $this->input->post('edit_hod_full_name'),
+                //'dept_hod_ad_name' => $this->input->post('edit_hod_ad_name'),
+                //'dept_hod_email' => $this->input->post('edit_hod_email'),
+                //'dept_hod_phone' => cus_phone_with_255($phone)
             ];
 
             $res = $this->mnt->saveEditDepartment(['dept_data' => $dept_data], $dept['dept_id']);
@@ -491,7 +491,7 @@ class Management extends CI_Controller {
         if (!$this->usr->is_logged_in) {
             cus_json_error(MSG_EXPIRY_SESSION);
         }
-        $usn = $this->usr->ad_name;
+        $usn = $this->usr->user_email;
 
         // Getinhg section from url segments
         $sec_id = $this->uri->segment(3);
@@ -505,10 +505,10 @@ class Management extends CI_Controller {
         $validations = [
                 ['field' => 'edit_sec_name', 'label' => 'section name', 'rules' => 'trim|required'],
                 ['field' => 'edit_sec_dept', 'label' => 'section department', 'rules' => 'trim|required'],
-                ['field' => 'edit_tl_ad_name', 'label' => 'teamleader AD name', 'rules' => 'trim|required|callback_validateEditTlAdName'],
-                ['field' => 'edit_tl_full_name', 'label' => 'teamleader full name', 'rules' => 'trim|required'],
-                ['field' => 'edit_tl_phone', 'label' => 'teamleader phone number', 'rules' => 'trim|required|callback_validateEditTlPhoneNumber'],
-                ['field' => 'edit_tl_email', 'label' => 'teamleader email address', 'rules' => 'trim|required|valid_email|callback_validateEditTlEmail']
+                //['field' => 'edit_tl_ad_name', 'label' => 'teamleader AD name', 'rules' => 'trim|required|callback_validateEditTlAdName'],
+                //['field' => 'edit_tl_full_name', 'label' => 'teamleader full name', 'rules' => 'trim|required'],
+                //['field' => 'edit_tl_phone', 'label' => 'teamleader phone number', 'rules' => 'trim|required|callback_validateEditTlPhoneNumber'],
+                //['field' => 'edit_tl_email', 'label' => 'teamleader email address', 'rules' => 'trim|required|valid_email|callback_validateEditTlEmail']
         ];
 
         $this->form_validation->set_rules($validations);
@@ -529,14 +529,14 @@ class Management extends CI_Controller {
             die();
         } else {
 
-            $phone = $this->input->post('edit_tl_phone');
+            //$phone = $this->input->post('edit_tl_phone');
             $sec_data = [
                 'sec_name' => $this->input->post('edit_sec_name'),
                 'sec_dept_id' => $this->input->post('edit_sec_dept'),
-                'sec_tl_full_name' => $this->input->post('edit_tl_full_name'),
-                'sec_tl_ad_name' => $this->input->post('edit_tl_ad_name'),
-                'sec_tl_email' => $this->input->post('edit_tl_email'),
-                'sec_tl_phone_number' => cus_phone_with_255($phone)
+                //'sec_tl_full_name' => $this->input->post('edit_tl_full_name'),
+                //'sec_tl_ad_name' => $this->input->post('edit_tl_ad_name'),
+                //'sec_tl_email' => $this->input->post('edit_tl_email'),
+                //'sec_tl_phone_number' => cus_phone_with_255($phone)
             ];
 
             $res = $this->mnt->saveEditSection(['sec_data' => $sec_data], $section['sec_id']);
@@ -576,7 +576,7 @@ class Management extends CI_Controller {
         if (!$this->usr->is_logged_in) {
             $this->usr->setSessMsg(MSG_EXPIRY_SESSION, 'error', 'user');
         }
-        $usn = $this->usr->ad_name;
+        $usn = $this->usr->user_email;
 
         $dept_id = $this->uri->segment(3);
 
@@ -618,7 +618,7 @@ class Management extends CI_Controller {
         if (!$this->usr->is_logged_in) {
             $this->usr->setSessMsg(MSG_EXPIRY_SESSION, 'error', 'user');
         }
-        $usn = $this->usr->ad_name;
+        $usn = $this->usr->user_email;
 
         // Getinhg section from url segments
         $sec_id = $this->uri->segment(3);
