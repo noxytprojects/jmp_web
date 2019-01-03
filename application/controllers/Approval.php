@@ -8,6 +8,25 @@ class Approval extends CI_Controller {
         parent::__construct();
     }
     
+    public function sendPush($payload, $receivers, $usn) {
+
+        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Sending push notification. Payload : ' . json_encode(['payload' => $payload, 'receivers' => $receivers]));
+
+        $firebase = new Firebase();
+        $push = new Push();
+        $push->setTitle(SYSTEM_NAME);
+        $push->setMessage($payload['msg']);
+        $push->setImage('');
+        $push->setIsBackground(FALSE);
+        $push->setPayload($payload);
+        $push->setReceiver($receivers);
+        $json = $push->getPush();
+
+        $fcm = $firebase->sendFcm($json);
+
+        log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - push notification sent : ' . $fcm);
+    }
+
     public function submitApproval() {
 
         header('Access-Control-Allow-Origin: *');
@@ -67,6 +86,16 @@ class Approval extends CI_Controller {
         if (!$approval) {
             cus_json_error("Access denied. Contact system admin");
         }
+        
+        $driver = $this->driver->getDriverProfiles(['dp_status'], ['dp_usr_id' => $trip['tr_usr_id']], 1);
+
+        if (!$driver) {
+            cus_json_error('Driver profile was not found. Contact the system admin.');
+        }
+
+        if (in_array(strtolower($driver['dp_status']), ['pending'])) {
+            cus_json_error('You should approve driver profile before approving this trip request.');
+        }
 
         $validations = [];
 
@@ -75,7 +104,7 @@ class Approval extends CI_Controller {
             case 'approve':
 
                 $comment .= "APPROVED\n";
-               
+
                 $status = "APPROVED";
                 $validations[] = ['field' => 'comment', 'label' => 'Approval Comment', 'rules' => 'trim'];
                 $sms_contractor = "Hello " . $trip['dp_full_name'] . " \nYour trip request for (" . cus_ellipsis($trip['tr_journey_purpose'], 70) . ") have been approved by " . $approval['auth_usr_title'];
@@ -83,7 +112,7 @@ class Approval extends CI_Controller {
 
             case 'disapprove':
                 $comment .= "DISAPPROVED\n\n";
-                
+
                 $status = "DISAPPROVED";
                 $validations[] = ['field' => 'dis_comment', 'label' => 'Disapproval Comment', 'rules' => 'trim|required'];
                 $sms_contractor = "Hello " . $trip['dp_full_name'] . " \nYour permit for (" . cus_ellipsis($trip['tr_journey_purpose'], 70) . ") have been disapproved by " . $approval['auth_usr_title'];
@@ -109,14 +138,14 @@ class Approval extends CI_Controller {
                 ]
             ]);
 
-            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed to ' . strtolower($action) . ' Trip request: ' . $trip['tr_id']. ' Reason(s): ' . json_encode($json));
+            log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed to ' . strtolower($action) . ' Trip request: ' . $trip['tr_id'] . ' Reason(s): ' . json_encode($json));
 
             echo $json;
             die();
         } else {
 
 
-            //$requestor_fcm_tokens = $this->fbm->getFirebaseTokens(['ft_token'], NULL, NULL, ['ft_user_id' => [$trip['tr_ad_name']]]);
+            $requestor_fcm_tokens = $this->fbm->getFirebaseTokens(['ft_token'], NULL, NULL, ['ft_user_id' => [$trip['tr_usr_id']]]);
 
             $post_comment = strtolower($action) == 'approve' ? $this->input->post('comment') : $this->input->post('dis_comment');
 
@@ -144,18 +173,17 @@ class Approval extends CI_Controller {
 
                 log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Successfully ' . strtolower($action) . 'd trip request: ' . $trip['tr_id']);
                 // Notify requestor by push notification
-                /*
-                  if ($requestor_fcm_tokens) {
-                  $payload = [
-                  'msg' => 'Your trip request has been approved successfully',
-                  'tr_id' => $trip['tr_id'],
-                  'title' => 'Trip Request Approval',
-                  'type' => 'TR_APPROVAL'
-                  ];
-                  $this->sendPush($payload, array_column($requestor_fcm_tokens, 'ft_token'), $usn);
-                  }
-                 * 
-                 */
+
+                if ($requestor_fcm_tokens) {
+                    $payload = [
+                        'msg' => 'Your trip request has been '.$action.'d',
+                        'tr_id' => $trip['tr_id'],
+                        'title' => 'Trip Request Approval',
+                        'type' => 'TR_APPROVAL'
+                    ];
+                    $this->sendPush($payload, array_column($requestor_fcm_tokens, 'ft_token'), $usn);
+                }
+
                 $sms_sender = $this->utl->getSetValue('SMS_SENDER');
                 $this->utl->saveMessage([
                     'sms_msisdn' => '+' . cus_phone_with_255($trip['dp_phone_number']),
@@ -175,4 +203,5 @@ class Approval extends CI_Controller {
             }
         }
     }
+
 }

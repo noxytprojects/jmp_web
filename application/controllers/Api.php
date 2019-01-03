@@ -62,6 +62,7 @@ class Api extends CI_Controller {
     }
 
     public function getDepartments() {
+
         header('Access-Control-Allow-Origin: *');
         header('Content-type: text/json');
         $depts = $this->mnt->getDepartments();
@@ -311,13 +312,13 @@ class Api extends CI_Controller {
         header('Content-type: text/json');
 
 
-        if ($this->usr->user_ad_name == NULL) {
+        if (empty($this->usr->user_id)) {
             $_POST = json_decode(file_get_contents('php://input'), true);
-            $user_id = $this->input->post('uder_id');
+            $user_id = $this->input->post('user_id');
         } else {
             $user_id = $this->usr->user_id;
         }
-        
+
         $user = $this->usr->getUserInfo($user_id, 'ID');
 
         $tr_id = $this->input->post('tr_id');
@@ -399,11 +400,18 @@ class Api extends CI_Controller {
         die();
     }
 
-    function getRequestAndApprovalDetails($trip_id, $ad_name) {
+    function getRequestAndApprovalDetails($trip_id, $user_id) {
+
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+
+        if (!$user) {
+            cus_json_error("User profile not found. Contact the system admin");
+        }
 
         $cols = [
+            'dp.dp_ao_title',
             'dp.dp_status',
-            'dp.dp_ad_name',
+            'dp.dp_usr_id',
             'dp.dp_email',
             'dp.dp_full_name',
             'dp.dp_medical_by_osha',
@@ -413,10 +421,7 @@ class Api extends CI_Controller {
             'dp.dp_license_number',
             'dp.dp_license_expiry',
             'dept.dept_name',
-            'sec.sec_name',
-            'sec.sec_tl_ad_name',
-            'dp.dp_ao_ad_name',
-            'tr.tr_ad_name',
+            'tr.tr_usr_id',
             'tr.tr_id',
             'tr.tr_journey_purpose purpose',
             'tr.tr_vehicle_reg_no vehicle_reg_no',
@@ -446,24 +451,35 @@ class Api extends CI_Controller {
         }
 
 
+
+        $can_approve = FALSE;
+        // Check user approal requests
+        $request_to_approve = $this->approval->getRequestApprovals(['auth.auth_tr_id'], "auth.auth_tr_id = '" . $trip['tr_id'] . "' AND auth.auth_status IS NULL AND r.r_notification_status = '1'", NULL, ['auth.auth_usr_title' => $this->usr->getUserApprovalTitles($user['usr_id']), 'tr.tr_status' => ['INPROGRESS']]);
+
+        
+
+        if ($request_to_approve) {
+            $can_approve = in_array($trip['tr_id'], array_column($request_to_approve, 'auth_tr_id'));
+        }
+
         // get trip approvals
 
-        $approvals = $this->approval->getRequestApprovals(['ap.ap_comments', 'ao.ao_title', 'ao.ao_full_name sec_tl_full_name', 'ao.ao_email sec_tl_email', 'ap.ap_status', 'ap.ap_tr_id', 'ap.ap_ad_name'], ['ap.ap_tr_id' => $trip['tr_id']]);
+        $approvals = $this->approval->getRequestRoute(null, ['r.r_tr_id' => $trip['tr_id']]);
 
         foreach ($approvals as $key => $a) {
-            $approvals[$key]['ap_comments'] = strip_tags($a['ap_comments']);
-            $approvals[$key]['can_approve'] = ($trip['tr_id'] == $a['ap_tr_id'] && $a['ap_ad_name'] == $ad_name && in_array(strtolower($trip['status']), ['pending'])) ? TRUE : FALSE;
+            $approvals[$key]['auth_comment'] = strip_tags($a['auth_comment']);
+            $approvals[$key]['can_approve'] = ($can_approve AND $a['r_tr_id'] === $trip['tr_id']) ? TRUE : FALSE; //($trip['tr_id'] == $a['ap_tr_id'] && $a['ap_ad_name'] == $ad_name && in_array(strtolower($trip['status']), ['pending'])) ? TRUE : FALSE;
         }
 
         $trip['stop_locations'] = !empty($trip['stop_locations']) ? $trip['stop_locations'] : 'N/A';
         $trip['dispatch_time'] = cus_nice_timestamp($trip['dispatch_time']);
         $trip['arrival_time'] = cus_nice_timestamp($trip['arrival_time']);
         $trip['dp_license_expiry'] = cus_nice_date($trip['dp_license_expiry']);
-        $trip['can_approve_dp'] = (strtolower($trip['dp_ao_ad_name']) == strtolower($ad_name) && in_array(strtolower($trip['dp_status']), ['pending'])) ? TRUE : FALSE;
+        $trip['can_approve_dp'] = (strtolower($trip['dp_ao_title']) == strtolower($user['usr_title']) && in_array(strtolower($trip['dp_status']), ['inprogress'])) ? TRUE : FALSE;
 
-        $trip['is_my_application'] = (strtolower($ad_name) == strtolower($trip['tr_ad_name'])) ? TRUE : FALSE;
-        $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused'])) ? TRUE : FALSE;
-        $trip['can_request_approval'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['new', 'paused'])) ? TRUE : FALSE;
+        $trip['is_my_application'] = (strtolower($user_id) == strtolower($trip['tr_usr_id'])) ? TRUE : FALSE;
+        $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['paused'])) ? TRUE : FALSE;
+        $trip['can_request_approval'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['paused'])) ? TRUE : FALSE;
 
         $trip['attachments'] = $this->utl->getAttachments(NULL, ['att.att_ref' => $trip['tr_id'], 'att.att_type' => 'TRIP_REQUEST']);
         $trip['attachment_counts'] = count($trip['attachments']);
@@ -481,10 +497,10 @@ class Api extends CI_Controller {
 
         $_POST = json_decode(file_get_contents('php://input'), true);
 
-        $ad_name = $this->input->post('ad_name');
+        $user_id = $this->input->post('user_id');
         $trip_id = $this->input->post('tr_id');
 
-        $request = $this->getRequestAndApprovalDetails($trip_id, $ad_name);
+        $request = $this->getRequestAndApprovalDetails($trip_id, $user_id);
 
         if (!$request) {
             cus_json_error('Trip request was not found or may have been removed from the system');
@@ -493,8 +509,8 @@ class Api extends CI_Controller {
         $json = json_encode([
             'status' => ['error' => FALSE],
             'request' => $request,
-            'license_attachments' => $this->utl->getAttachments(['att.att_name', 'att.att_id', 'att.att_status', 'att_type'], ['att.att_ref' => $request['tr_ad_name'], 'att.att_type' => 'DRIVER_LICENSE', 'att.att_status' => '01']),
-            'medical_attachments' => $this->utl->getAttachments(['att.att_name', 'att.att_id', 'att.att_status', 'att_type'], ['att.att_ref' => $request['tr_ad_name'], 'att.att_type' => 'MEDICAL_FITNESS', 'att.att_status' => '1'])
+            'license_attachments' => $this->utl->getAttachments(['att.att_name', 'att.att_id', 'att.att_status', 'att_type'], ['att.att_ref' => $request['dp_usr_id'], 'att.att_type' => 'DRIVER_LICENSE', 'att.att_status' => '1']),
+            'medical_attachments' => $this->utl->getAttachments(['att.att_name', 'att.att_id', 'att.att_status', 'att_type'], ['att.att_ref' => $request['dp_usr_id'], 'att.att_type' => 'MEDICAL_FITNESS', 'att.att_status' => '1'])
         ]);
 
         echo $json;
@@ -510,7 +526,7 @@ class Api extends CI_Controller {
         $_POST = json_decode(file_get_contents('php://input'), true);
 
         $type = $this->input->post('type');
-        $ad_name = $this->input->post('ad_name');
+        $user_id = $this->input->post('user_id');
 
         $select_columns = [
             'tr.tr_destination_location',
@@ -539,7 +555,7 @@ class Api extends CI_Controller {
                         'tr.tr_timestamp' => 'DESC'
                     ],
                     'cond' => NULL,
-                    'where_in' => ['tr.tr_status' => ['COMPLETED', 'APPROVED']]
+                    'where_in' => ['tr.tr_status' => ['COMPLETED', 'APPROVED', 'INPROGRESS']]
                 ];
                 break;
 
@@ -556,12 +572,21 @@ class Api extends CI_Controller {
                     'default_order_column' => [
                         'tr.tr_timestamp' => 'DESC'
                     ],
-                    'cond' => ['tr.tr_ad_name' => $ad_name],
+                    'cond' => ['tr.tr_usr_id' => $user_id],
                     'where_in' => NULL
                 ];
                 break;
 
             case 'INCOMING':
+
+                $request_to_approve = $this->approval->getRequestApprovals(['auth.auth_tr_id'], "auth.auth_status IS NULL AND r.r_notification_status = '1'", NULL, ['auth.auth_usr_title' => $this->usr->getUserApprovalTitles($user_id), 'tr.tr_status' => ['INPROGRESS']]);
+
+                if ($request_to_approve) {
+                    $tr_ids = array_column($request_to_approve, "auth_tr_id");
+                } else {
+                    $tr_ids = FALSE;
+                }
+                
                 $datatables = [
                     'select_columns' => $select_columns,
                     'search_columns' => [
@@ -574,8 +599,8 @@ class Api extends CI_Controller {
                     'default_order_column' => [
                         'tr.tr_timestamp' => 'DESC'
                     ],
-                    'cond' => ['ap.ap_ad_name' => $ad_name],
-                    'where_in' => ['tr.tr_status' => ['PENDING']]
+                    'cond' => NULL,
+                    'where_in' => ['tr.tr_status' => ['INPROGRESS'], 'tr.tr_id' => $tr_ids]
                 ];
                 break;
 
@@ -616,10 +641,11 @@ class Api extends CI_Controller {
     }
 
     public function getSections() {
+
         header('Access-Control-Allow-Origin: *');
         header('Content-type: text/json');
 
-        $sections = $this->mnt->getSections(NULL, ['sec_dept_id' => $this->uri->segment(3)]);
+        $sections = $this->mnt->getSections(NULL, ['sec.sec_dept_id' => $this->uri->segment(3)]);
 
         $json = [
             'status' => [
@@ -636,7 +662,7 @@ class Api extends CI_Controller {
 
         header('Access-Control-Allow-Origin: *');
         header('Content-type: text/json');
-        
+
         $tr_id = 0;
         // Check user session status and the platform used
         if (!empty($_POST) && !$this->usr->is_logged_in) {
@@ -648,9 +674,9 @@ class Api extends CI_Controller {
             $user_id = $this->usr->user_id;
             $tr_id = $this->input->post('tr_id');
         }
-        
+
         $user = $this->usr->getUserInfo($user_id, 'ID');
-        
+
         $usn = $user['usr_email'];
 
         $driver_user_id = $this->input->post('driver_usr_id');
@@ -678,14 +704,14 @@ class Api extends CI_Controller {
 
 
         $this->usr->setSessMsg('Driver profile updated successfully. You may now proceed with trip request approval.', 'success');
-        
+
         echo json_encode([
             'status' => [
-                'error' => FALSE, 
+                'error' => FALSE,
                 'redirect' => TRUE,
                 'redirect_url' => site_url('trip/previewrequest/' . $tr_id)
-                ]
-            ]);
+            ]
+        ]);
     }
 
     public function submitApproveRequest() {
@@ -933,7 +959,6 @@ class Api extends CI_Controller {
         }
     }
 
-    
     public function getDriverDetails() {
 
         header('Access-Control-Allow-Origin: *');
@@ -949,10 +974,19 @@ class Api extends CI_Controller {
             cus_json_error('Drivers profile not found.');
         }
 
-        $line_managers = $this->usr->getUsersList("usr_title IS NOT NULL AND usr_role IN ('ADMIN','MANAGER')", ['usr_title ao_email','usr_ad_name ao_ad_name','usr_fullname ao_full_name']);
+        $driver['ao_full_name'] = "";
+        $driver['ao_title'] = "";
+        $driver['ao_phone_number'] = "";
+
+        $line_managers = $this->usr->getUsersList("usr_title IS NOT NULL AND usr_role IN ('ADMIN','MANAGER')", ['usr_phone', 'usr_title', 'usr_fullname', 'usr_email ao_email', 'usr_ad_name ao_ad_name', 'usr_fullname ao_full_name']);
 
         foreach ($line_managers as $key => $ln) {
-            $line_managers[$key]['ao_full_name'] = $ln['usr_title'] . ' - ' . $ln['usr_fullname'];
+            $line_managers[$key]['ao_full_name'] = $ln['usr_fullname'] . ' - ' . $ln['usr_title'];
+            if (strtolower($driver['dp_ao_title']) == strtolower($ln['usr_title'])) {
+                $driver['ao_full_name'] = $ln['usr_fullname'];
+                $driver['ao_title'] = $ln['usr_title'];
+                $driver['ao_phone_number'] = cus_phone_with_255($ln['usr_phone']);
+            }
         }
 
         $json = [
@@ -983,9 +1017,9 @@ class Api extends CI_Controller {
             $user_id = $this->usr->user_id;
             $type = 'WEB';
         }
-        
+
         $user = $this->usr->getUserInfo($user_id, 'ID');
-        
+
         $usn = $user['usr_email'];
 
         $validations = [
@@ -1113,7 +1147,7 @@ class Api extends CI_Controller {
             $json = [
                 'status' => ['error' => FALSE, 'redirect' => TRUE, 'redirect_url' => site_url('driver/updateprofile')],
                 'driver_details' => $driver_details,
-                'line_managers' => $this->usr->getUsersList("usr_title IS NOT NULL AND usr_role IN ('ADMIN','MANAGER')", ['usr_title','usr_ad_name','usr_fullname']) 
+                'line_managers' => $this->usr->getUsersList("usr_title IS NOT NULL AND usr_role IN ('ADMIN','MANAGER')", ['usr_title', 'usr_ad_name', 'usr_fullname'])
             ];
 
             echo json_encode($json);
@@ -1132,9 +1166,9 @@ class Api extends CI_Controller {
         } else {
             $user_id = $this->usr->user_id;
         }
-        
+
         $user = $this->usr->getUserInfo($user_id, 'ID');
-        
+
         $usn = $user['usr_email'];
 
         $edit_id = $this->input->post('edit_id');
@@ -1302,7 +1336,7 @@ class Api extends CI_Controller {
             $user_id = $this->input->post('user_id');
         }
 
-        $user = $this->usr->getUserInfo($user_id,'ID');
+        $user = $this->usr->getUserInfo($user_id, 'ID');
 
         if (empty($email)) {
             return TRUE;
@@ -1325,8 +1359,8 @@ class Api extends CI_Controller {
             $user_id = $this->input->post('user_id');
         }
 
-        $user = $this->usr->getUserInfo($user_id,'ID');
-     
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+
 
         if (empty($phone)) {
             return TRUE;
@@ -1349,7 +1383,7 @@ class Api extends CI_Controller {
             $user_id = $this->input->post('user_id');
         }
 
-        $user = $this->usr->getUserInfo($user_id,'ID');
+        $user = $this->usr->getUserInfo($user_id, 'ID');
 
         if (empty($license)) {
             return TRUE;
@@ -1368,7 +1402,7 @@ class Api extends CI_Controller {
         if (empty($license_expiry)) {
             return TRUE;
         }
-        
+
         $license_expiry = str_replace('/', '-', $license_expiry);
 
         if (time() > strtotime($license_expiry)) {
@@ -1377,7 +1411,7 @@ class Api extends CI_Controller {
         }
         return TRUE;
     }
-    
+
     public function validateLicense($license) {
         return TRUE;
     }
@@ -1570,12 +1604,12 @@ class Api extends CI_Controller {
     public function validateLicenseAttachment() {
 
         $user_id = $this->usr->user_id;
-        
+
         if (empty($user_id)) {
             $user_id = $this->input->post('user_id');
         }
 
-        $user = $this->usr->getUserInfo($user_id,'ID');
+        $user = $this->usr->getUserInfo($user_id, 'ID');
 
         $attachments = $this->utl->getAttachments(NULL, ['att_type' => 'DRIVER_LICENSE', 'att_ref' => $user['usr_id']]);
         if (count($attachments) == 0) {
@@ -1607,7 +1641,7 @@ class Api extends CI_Controller {
         }
 
         $ao = $this->usr->getUsersList(['usr_title' => $line_manager], ['usr_title'], 1);
-        
+
         if (!$ao) {
             $this->form_validation->set_message('Select a valid line manager');
             return FALSE;
@@ -1617,12 +1651,12 @@ class Api extends CI_Controller {
 
     public function validateAttachment() {
 
-        $ad_name = $this->usr->user_email;
-        if (empty($ad_name)) {
-            $ad_name = $this->input->post('ad_name');
+        $user_id = $this->usr->user_id;
+        if (empty($user_id)) {
+            $user_id = $this->input->post('user_id');
         }
 
-        $user = $this->usr->getAnymousUser($ad_name);
+        $user = $this->usr->getUserInfo($user_id, 'ID');
 
 
         $attachment = $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_status' => '0', 'att.att_usr_id' => $user['usr_id']]);

@@ -293,13 +293,24 @@ class User extends CI_Controller {
             die();
         } else {
 
-            $page = $user['usr_change_pass'] == '1' ? 'RESET_PASS' : 'HOME';
+
+            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_usr_id' => $user['usr_id']], 1);
+            $page = $driver ? "HOME" : "UPDATE_DRIVER_PROFILE";
+
+
+            $page = $user['usr_change_pass'] == '1' ? 'RESET_PASS' : $page;
+
+
 
 
             log_message(SYSTEM_LOG, __CLASS__ . '/' . __FUNCTION__ . ' -> ' . $this->input->ip_address() . ' -> ' . $user['usr_email'] . ' -> Logged in successfully with OTP');
 
             $json = json_encode([
-                'status' => ['error' => FALSE, 'page' => $page]
+                'status' => [
+                    'error' => FALSE,
+                    'page' => $page
+                ],
+                'more_data' => $this->_moreUserData($user)
             ]);
 
             echo $json;
@@ -351,6 +362,8 @@ class User extends CI_Controller {
             die();
         } else {
 
+
+
             $pwd = $this->input->post('pwd1');
             $date = date('Y-m-d H:i:s');
             $validity = $this->utl->getSetValue("MAX_PWD_VALIDITY_DAYS");
@@ -364,7 +377,17 @@ class User extends CI_Controller {
                 cus_json_error('Failed to reset your account password. Please try again or contact your system admin');
             }
             log_message(SYSTEM_LOG, __CLASS__ . '/' . __FUNCTION__ . ' -> ' . $this->input->ip_address() . ' -> ' . $user['usr_email'] . ' -> Successfully reset account password');
-            echo json_encode(['status' => ['error' => FALSE, 'page' => 'HOME']]);
+
+            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_usr_id' => $user['usr_id']], 1);
+            $page = $driver ? "HOME" : "UPDATE_DRIVER_PROFILE";
+
+            echo json_encode([
+                'status' => [
+                    'error' => FALSE,
+                    'page' => $page
+                ],
+                'more_data' => $this->_moreUserData($user)
+            ]);
             die();
         }
     }
@@ -489,6 +512,29 @@ class User extends CI_Controller {
                 cus_json_error('Your account is INACTIVE, Please contact system admin.');
             }
 
+
+            $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_usr_id' => $user['usr_id']], 1);
+            $driver_details = NULL;
+            if ($driver) {
+                $driver_details = [
+                    "name" => $driver['dp_full_name'],
+                    "phone" => $driver["dp_phone_number"],
+                    "manager" => $driver['dp_ao_title'],
+                    "medical_by_osha" => $driver['dp_medical_by_osha'],
+                    "medical_fitness_date" => $driver['dp_medical_date'],
+                    "email" => $driver["dp_email"],
+                    "dept" => $driver["dp_dept_id"],
+                    "section" => $driver["dp_section_id"],
+                    "license" => $driver["dp_license_number"],
+                    "license_expiry" => date('Y-m-d', strtotime($driver["dp_license_expiry"])),
+                    "licence_attachments" => [],
+                    "line_manager" => $driver['usr_fullname'] . ' - ' . $driver['usr_title'],
+                    "dept_section" => $driver['dept_name'] . ' - ' . $driver['sec_name']
+                ];
+            }
+
+            $page = $driver ? "HOME" : "UPDATE_DRIVER_PROFILE";
+
             // Check if user is to be validate with OTP
             if ($user['usr_2fa_enabled'] == '1' AND $user['usr_change_pass'] == '0') {
                 $this->_apiSendOtp($user);
@@ -517,7 +563,9 @@ class User extends CI_Controller {
                 'user_contractor' => $user['usr_contractor'],
                 'user_delegated_title' => $delegated_title ? $delegated_title['usr_title'] : "",
                 'user_page' => $page,
-                'user_key' => $user_key
+                'user_key' => $user_key,
+                'driver_details' => $driver_details,
+                'can_approve_requests' => $delegated_title OR ! empty($user['usr_title']) ? TRUE : FALSE
             ];
 
             $this->fbm->firebaseToken($user['usr_email']);
@@ -528,12 +576,40 @@ class User extends CI_Controller {
                 'status' => [
                     'error' => FALSE
                 ],
-                'user' => $user_data
+                'user' => $user_data,
+                'more_data' => $this->_moreUserData($user)
             ];
 
             echo json_encode($json);
             die();
         }
+    }
+
+    private function _moreUserData($user) {
+
+        $driver_details = $this->driver->getDriverProfiles(NULL, ['dp_usr_id' => $user['usr_id']], 1);
+
+        if (!$driver_details) {
+            $driver_details = [
+                'dp_full_name' => $user['usr_fullname'],
+                'dp_dept_id' => "",
+                'dp_phone_number' => $user['usr_phone'],
+                'dp_email' => $user['usr_email'],
+                'dp_ao_title' => "",
+                'dp_section_id' => "",
+                'dp_license_number' => "",
+                'dp_license_expiry' => "",
+                'dp_medical_by_osha' => "",
+                'dp_medical_date' => ""
+            ];
+        }
+
+        return [
+            'managers' => $this->usr->getUsersList("usr_title IS NOT NULL AND usr_role IN ('ADMIN','MANAGER')", ['usr_title', 'usr_ad_name', 'usr_fullname']),
+            'medical_attachments' => [],
+            'license_attachments' => [],
+            'driver_details' => $driver_details
+        ];
     }
 
     public function apiLogout() {
@@ -636,7 +712,8 @@ class User extends CI_Controller {
                         'user_contractor' => $user['usr_contractor'],
                         'user_page' => $page,
                         'user_ad_name' => $user['usr_ad_name'],
-                        'user_delegated_title' => $delegated_title ? $delegated_title['usr_title'] : ""
+                        'user_delegated_title' => $delegated_title ? $delegated_title['usr_title'] : "",
+                        'can_approve_requests' => $delegated_title OR ! empty($user['usr_title']) ? TRUE : FALSE
                     ]
                 ]);
 
@@ -893,8 +970,8 @@ class User extends CI_Controller {
 
         $driver = $this->driver->getDriverProfiles(NULL, ['dp.dp_usr_id' => $user['usr_id']], 1);
         $page = $driver ? "HOME" : "UPDATE_DRIVER_PROFILE";
-        
-       
+
+
 
         $this->usr->saveEditUser(['usr_last_login' => date('Y-m-d H:i:s'), 'usr_user_agent' => sha1($user_agent), 'usr_logged_in' => 1, 'usr_last_activity_time' => date('Y-m-d H:i:s')], $user['usr_id']);
 
@@ -910,7 +987,8 @@ class User extends CI_Controller {
                 'user_page' => $page,
                 'user_ad_name' => $user['usr_ad_name'],
                 'user_contractor' => $user['usr_contractor'],
-                'user_delegated_title' => $delegated_title ? $delegated_title['usr_title'] : ""
+                'user_delegated_title' => $delegated_title ? $delegated_title['usr_title'] : "",
+                'can_approve_requests' => $delegated_title OR ! empty($user['usr_title']) ? TRUE : FALSE
             ]
         ]);
 
@@ -1083,7 +1161,7 @@ class User extends CI_Controller {
             ],
             'header_data' => [],
             'footer_data' => [],
-            'top_bar_data' => ['inbox' => $this->usr->getInbox(),'extended' => $this->extended]
+            'top_bar_data' => ['inbox' => $this->usr->getInbox(), 'extended' => $this->extended]
         ];
 
         $this->load->view('view_base', $data);
@@ -1618,10 +1696,13 @@ class User extends CI_Controller {
 
     public function validateUsername($user) {
 
+        if (empty($user)) {
+            return TRUE;
+        }
+
         $usr = $this->usr->getAnymousUser($user);
 
         if (!$usr) {
-            //log_message(SYSTEM_LOG, 'user/validateUsername - ' . $this->input->post('loginUsername') . ' ' . $this->input->ip_address() . 'Invalid username was given');
             $this->form_validation->set_message('validateUsername', 'Invalid Username');
             return FALSE;
         }

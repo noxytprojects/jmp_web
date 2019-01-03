@@ -3,7 +3,37 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Reports.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_departments.php</file>
             <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_preview_request.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Api.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/menu/view_sys_menu.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Approval.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/UserModel.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/contents/view_2fa.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Utility.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_request_trip.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/User.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_trip_request.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/contents/view_multiple_login.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/export/view_export_pdf_trip_request.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_update_profile.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Maintenance.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Management.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/ApprovalModel.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/helpers/custom_functions_helper.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/DriverModel.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/static/view_top_bar.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/static/view_modals.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/UserModelBk.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Trip.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_edit_request.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/controllers/Driver.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/jmp/view_sections.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/UtilityModel.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/views/contents/view_settings.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/TripsModel.php</file>
+            <file>file:/Applications/MAMP/htdocs/jmp/application/models/MaintenanceModel.php</file>
         </group>
     </open-files>
 </project-private>

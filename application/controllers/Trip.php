@@ -48,7 +48,7 @@ class Trip extends CI_Controller {
                 'tr.tr_timestamp' => 'DESC'
             ],
             'cond' => NULL,
-            'where_in' => ['tr.tr_status' => ['COMPLETED', 'APPROVED','INPROGRESS']]
+            'where_in' => ['tr.tr_status' => ['COMPLETED', 'APPROVED', 'INPROGRESS']]
         ];
 
         $list = $this->trip->get_datatables_trips($datatables);
@@ -107,15 +107,15 @@ class Trip extends CI_Controller {
             );
             die();
         }
-        
-        $request_to_approve = $this->approval->getRequestApprovals(['auth.auth_tr_id'], "auth.auth_status IS NULL AND r.r_notification_status = '1'", NULL, ['auth.auth_usr_title' => $this->usr->getUserApprovalTitles(),'tr.tr_status' => ['INPROGRESS']]);
+
+        $request_to_approve = $this->approval->getRequestApprovals(['auth.auth_tr_id'], "auth.auth_status IS NULL AND r.r_notification_status = '1'", NULL, ['auth.auth_usr_title' => $this->usr->getUserApprovalTitles(), 'tr.tr_status' => ['INPROGRESS']]);
 
         if ($request_to_approve) {
             $tr_ids = array_column($request_to_approve, "auth_tr_id");
         } else {
             $tr_ids = FALSE;
         }
-        
+
         $data = [];
         $datatables = [
             'select_columns' => [
@@ -139,7 +139,7 @@ class Trip extends CI_Controller {
                 'tr.tr_timestamp' => 'DESC'
             ],
             'cond' => [],
-            'where_in' => ['tr.tr_status' => ['INPROGRESS'],'tr.tr_id'=> $tr_ids]
+            'where_in' => ['tr.tr_status' => ['INPROGRESS'], 'tr.tr_id' => $tr_ids]
         ];
 
         $list = $this->trip->get_datatables_trips($datatables);
@@ -279,7 +279,7 @@ class Trip extends CI_Controller {
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_trip_request',
-            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP','inbox_count' => $this->usr->getInbox()],
+            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP', 'inbox_count' => $this->usr->getInbox()],
             'content_data' => ['module_name' => 'All Trip Requests'],
             'header_data' => [],
             'footer_data' => [],
@@ -299,7 +299,7 @@ class Trip extends CI_Controller {
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_inbox_trip_request',
-            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP','inbox_count' => $this->usr->getInbox()],
+            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP', 'inbox_count' => $this->usr->getInbox()],
             'content_data' => ['module_name' => 'Incoming Requests'],
             'header_data' => [],
             'footer_data' => [],
@@ -315,10 +315,10 @@ class Trip extends CI_Controller {
         if (!$this->usr->is_logged_in) {
             $this->usr->setSessMsg('Your session may have been expired. Loging in is requires', 'error', 'user');
         }
-        
-        $attachments = $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST','att.att_status'=>'0','att_usr_id' => $this->usr->user_id]);
 
-        if($attachments){
+        $attachments = $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_status' => '0', 'att_usr_id' => $this->usr->user_id]);
+
+        if ($attachments) {
             $att_ids = array_column($attachments, "att_id");
             $this->utl->removeAttachments($att_ids);
         }
@@ -326,10 +326,10 @@ class Trip extends CI_Controller {
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_request_trip',
-            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP','inbox_count' => $this->usr->getInbox()],
+            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP', 'inbox_count' => $this->usr->getInbox()],
             'content_data' => [
                 'module_name' => 'Request A Trip',
-                'attachments' => $this->utl->getAttachments(NULL, ['att_type' => 'TRIP_REQUEST','att_usr_id' => $this->usr->user_id,'att_status' => '0'])
+                'attachments' => $this->utl->getAttachments(NULL, ['att_type' => 'TRIP_REQUEST', 'att_usr_id' => $this->usr->user_id, 'att_status' => '0'])
             ],
             'header_data' => [],
             'footer_data' => [],
@@ -348,7 +348,7 @@ class Trip extends CI_Controller {
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_my_trip_requests',
-            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP','inbox_count' => $this->usr->getInbox()],
+            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP', 'inbox_count' => $this->usr->getInbox()],
             'content_data' => ['module_name' => 'My Trip Requests'],
             'header_data' => [],
             'footer_data' => [],
@@ -420,16 +420,149 @@ class Trip extends CI_Controller {
             $this->usr->setSessMsg('Approval request was not sent.', 'error', 'trip/previewrequest/' . $trip['tr_id']);
         }
     }
-    
-    public function requestApproval() {
+
+    public function apiRequestApproval() {
+
+        header('Access-Control-Allow-Origin: *');
+        header('Content-type: text/json');
+
+        $_POST = json_decode(file_get_contents('php://input'), true);
         
+        $user_id = $this->input->post('user_id');
+        $tr_id = $this->input->post('tr_id');
+
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+
+        
+        $usn = $user['usr_email'];
+
+        $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $tr_id], 1);
+        
+        if (!$trip) {
+            // trip request was not found so redirect back
+            cus_json_error('Trip request was not found or may have been removed from the system');
+        }
+        
+        
+        $res = $this->_createAndSubmitRoute($trip, $user);
+        
+        if(!$res){
+            cus_json_error("Something went wrong. Approval request was not sent. Please try again");
+        }
+        
+        $json = [
+            'status' => [
+                'error' => FALSE,
+            ],
+            'request' => $this->getRequestAndApprovalDetails($trip['tr_id'], $user['usr_id'])
+        ];
+
+        echo json_encode($json);
+        die();
+        
+        
+    }
+    
+    function getRequestAndApprovalDetails($trip_id, $user_id) {
+        
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+        
+        if(!$user){
+            cus_json_error("User profile not found. Contact the system admin");
+        }
+
+        $cols = [
+            'dp.dp_ao_title',
+            'dp.dp_status',
+            'dp.dp_usr_id',
+            'dp.dp_email',
+            'dp.dp_full_name',
+            'dp.dp_medical_by_osha',
+            'dp.dp_medical_date',
+            'dp.dp_status',
+            'dp.dp_phone_number',
+            'dp.dp_license_number',
+            'dp.dp_license_expiry',
+            'dept.dept_name',
+            'tr.tr_usr_id',
+            'tr.tr_id',
+            'tr.tr_journey_purpose purpose',
+            'tr.tr_vehicle_reg_no vehicle_reg_no',
+            'tr.tr_vehicle_type vehicle_type',
+            'tr.tr_medical_by_osha medical_done_by_osha',
+            'tr.tr_reason_finish_after_17 reason',
+            'tr.tr_work_finish_time finish_time',
+            'tr.tr_difense_driver_training difensive',
+            'tr.tr_for_by_for_training four_by_four',
+            'tr.tr_suitable_license suitable',
+            'tr.tr_fit_for_use fit_for_use',
+            'tr.tr_dispatch_time dispatch_time',
+            'tr.tr_arraival_time arrival_time',
+            'tr.tr_departure_location departure_location',
+            'tr.tr_destination_location destination_location',
+            'tr.tr_stop_locations stop_locations',
+            'tr.tr_distance distance',
+            'tr.tr_timestamp timestamp',
+            'tr.tr_status status'
+        ];
+
+        $trip = $this->trip->getTripRequests($cols, ['tr.tr_id' => $trip_id], 1);
+
+        if (!$trip) {
+            // trip request was not found so redirect back
+            cus_json_error('Trip request was not found or may have been removed from the system');
+        }
+
+        
+     
+        $can_approve = FALSE;
+        // Check user approal requests
+        $request_to_approve = $this->approval->getRequestApprovals(['auth.auth_tr_id'], "auth.auth_tr_id = '" . $trip['tr_id'] . "' AND auth.auth_status IS NULL AND r.r_notification_status = '1'", NULL, ['auth.auth_usr_title' => $this->usr->getUserApprovalTitles($user['usr_id']),'tr.tr_status' => ['INPROGRESS']]);
+        
+       
+        if ($request_to_approve) {
+            $can_approve = in_array($trip['tr_id'], array_column($request_to_approve,'auth_tr_id' ));
+        }
+        
+        // get trip approvals
+
+        $approvals = $this->approval->getRequestRoute(null, ['r.r_tr_id' => $trip['tr_id']]);
+
+        foreach ($approvals as $key => $a) {
+            $approvals[$key]['auth_comment'] = strip_tags($a['auth_comment']);
+            $approvals[$key]['can_approve'] = ($can_approve AND $a['r_tr_id'] === $trip['tr_id']) ? TRUE : FALSE; //($trip['tr_id'] == $a['ap_tr_id'] && $a['ap_ad_name'] == $ad_name && in_array(strtolower($trip['status']), ['pending'])) ? TRUE : FALSE;
+        }
+
+        $trip['stop_locations'] = !empty($trip['stop_locations']) ? $trip['stop_locations'] : 'N/A';
+        $trip['dispatch_time'] = cus_nice_timestamp($trip['dispatch_time']);
+        $trip['arrival_time'] = cus_nice_timestamp($trip['arrival_time']);
+        $trip['dp_license_expiry'] = cus_nice_date($trip['dp_license_expiry']);
+        $trip['can_approve_dp'] = (strtolower($trip['dp_ao_title']) == strtolower($user['usr_title']) && in_array(strtolower($trip['dp_status']), ['inprogress'])) ? TRUE : FALSE;
+
+        $trip['is_my_application'] = (strtolower($user_id) == strtolower($trip['tr_usr_id'])) ? TRUE : FALSE;
+        $trip['can_edit'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['paused'])) ? TRUE : FALSE;
+        $trip['can_request_approval'] = ($trip['is_my_application'] == TRUE AND in_array(strtolower($trip['status']), ['paused'])) ? TRUE : FALSE;
+
+        $trip['attachments'] = $this->utl->getAttachments(NULL, ['att.att_ref' => $trip['tr_id'], 'att.att_type' => 'TRIP_REQUEST']);
+        $trip['attachment_counts'] = count($trip['attachments']);
+
+
+        $trip['approvals'] = $approvals;
+
+        return $trip;
+    }
+    
+    
+
+    public function requestApproval() {
+
         // Check if user has logged in 
         if (!$this->usr->is_logged_in) {
             $this->usr->setSessMsg(MSG_SESSION_EXPIRY, 'error', 'user');
         }
 
         $r_id = $this->uri->segment(3);
-        
+
         $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $r_id], 1);
 
         if (!$trip) {
@@ -441,7 +574,7 @@ class Trip extends CI_Controller {
             $this->usr->setSessMsg('Trip request is not in the right status to request for approval', 'error', 'trip/previewrequest/' . $trip['tr_id']);
         }
 
-        
+
         $user = $this->usr->getUserInfo($this->usr->user_id, 'ID');
 
         $res = $this->_createAndSubmitRoute($trip, $user);
@@ -452,14 +585,14 @@ class Trip extends CI_Controller {
             $this->usr->setSessMsg('Approval request was not sent.', 'error', 'trip/previewrequest/' . $trip['tr_id'] . '?url=' . urlencode(site_url('permits/mypermits')) . '&module=' . urlencode("My Trip Requests"));
         }
     }
-    
+
     private function _createAndSubmitRoute($trip, $user, $source = 'web') {
 
         $usn = $user['usr_email'];
 
         if (!$trip) {
             // trip request was not found so redirect back
-            $source == 'mobile' ? cus_json_error('Trip request was not found or may have been removed from the system') : $this->usr->setSessMsg('Trip request was not found or may have been removed from the system', 'error', site_url('trip/previewrequest/'. $trip['tr_id']));
+            $source == 'mobile' ? cus_json_error('Trip request was not found or may have been removed from the system') : $this->usr->setSessMsg('Trip request was not found or may have been removed from the system', 'error', site_url('trip/previewrequest/' . $trip['tr_id']));
         }
 
         if (!in_array(strtolower($trip['tr_status']), ['new', 'paused'])) {
@@ -471,15 +604,15 @@ class Trip extends CI_Controller {
         $new_route = [];
 
         $timestamp = date('Y-m-d H:i:s');
-      
+
         $offs = [];
 
         $manager = $this->usr->getUsersList(['usr_title' => $trip['dp_ao_title']], ['usr_title'], 1);
-        
-        if($manager){
+
+        if ($manager) {
             $offs[] = $manager['usr_title'];
         }
-       
+
         $sequence = 1;
 
         foreach ($offs as $off) {
@@ -524,7 +657,7 @@ class Trip extends CI_Controller {
             log_message(SYSTEM_LOG, $this->input->ip_address() . ' => ' . __CLASS__ . '/' . __FUNCTION__ . ' => ' . $usn . ' - Failed to create route for Trip Request :' . $trip['tr_id'] . ' Route:' . json_encode($data));
         }
 
-        sleep(3); // allow few seconds for a script to update the request
+        sleep(5); // allow few seconds for a script to update the request
         return $res;
     }
 
@@ -542,28 +675,26 @@ class Trip extends CI_Controller {
             // trip request was not found so redirect back
             $this->usr->setSessMsg('Trip request was not found or may have been removed from the system', 'error', site_url('trip/requests'));
         }
-        
+
         $can_approve = FALSE;
 
-        $request_to_approve = $this->approval->getRequestApprovals(['auth.auth_tr_id'], "auth.auth_tr_id = '" . $trip['tr_id'] . "' AND auth.auth_status IS NULL AND r.r_notification_status = '1'", 1, ['auth.auth_usr_title' => $this->usr->getUserApprovalTitles(),'tr.tr_status' => ['INPROGRESS']]);
+        $request_to_approve = $this->approval->getRequestApprovals(['auth.auth_tr_id'], "auth.auth_tr_id = '" . $trip['tr_id'] . "' AND auth.auth_status IS NULL AND r.r_notification_status = '1'", NULL, ['auth.auth_usr_title' => $this->usr->getUserApprovalTitles(), 'tr.tr_status' => ['INPROGRESS']]);
 
         if ($request_to_approve) {
-            
-            $can_approve = in_array($trip['tr_id'], [$request_to_approve['auth_tr_id']]);
-            
+            $can_approve = in_array($trip['tr_id'], array_column($request_to_approve, 'auth_tr_id'));
         }
 
         $cols_ap = ['auth.auth_usr_title', 'u.usr_email email', 'u.usr_phone phone', 'u.usr_fullname fullname', 'auth.auth_approved_date', 'auth.auth_comment'];
         $approvers_approved = $this->approval->getRequestApprovals($cols_ap, "auth.auth_tr_id = '" . $trip['tr_id'] . "' AND auth.auth_status IS NOT NULL");
 
-        
+
         $cols_pa = ['r.r_usr_title', 'u.usr_email email', 'u.usr_phone phone', 'u.usr_fullname fullname'];
         $pending_approval = $this->approval->getRequestRoute($cols_pa, "r.r_tr_id = '" . $trip['tr_id'] . "' AND auth.auth_status IS NULL");
-                
+
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_preview_request',
-            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP','inbox_count' => $this->usr->getInbox()],
+            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP', 'inbox_count' => $this->usr->getInbox()],
             'content_data' => [
                 'module_name' => 'Trip Approval Satatus',
                 'trip' => $trip,
@@ -571,7 +702,7 @@ class Trip extends CI_Controller {
                 'approvers_approved' => $approvers_approved,
                 'is_my_application' => $this->usr->user_id == $trip['tr_usr_id'] ? TRUE : FALSE,
                 'can_approve' => $can_approve, //$this->usr->user_ad_name == $trip['ap_ad_name'] ? TRUE : FALSE,
-                'attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST','att.att_ref' => $trip['tr_id']])
+                'attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_ref' => $trip['tr_id']])
             ],
             'header_data' => [],
             'footer_data' => [],
@@ -595,21 +726,21 @@ class Trip extends CI_Controller {
             // trip request was not found so redirect back
             $this->usr->setSessMsg('Trip request was not found or may have been removed from the system', 'error', site_url('trip/requests'));
         }
-        
-        $incomplete_uploads = $this->utl->getAttachments(NULL, "att.att_ref IS NULL AND att.att_usr_id ='".$this->usr->user_id."' AND att.att_status = '0' ");
-        
+
+        $incomplete_uploads = $this->utl->getAttachments(NULL, "att.att_ref IS NULL AND att.att_usr_id ='" . $this->usr->user_id . "' AND att.att_status = '0' ");
+
         $this->utl->removeTempFiles($incomplete_uploads);
 
         $data = [
             'menu' => 'menu/view_sys_menu',
             'content' => 'jmp/view_edit_request',
-            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP','inbox_count' => $this->usr->getInbox()],
+            'menu_data' => ['curr_menu' => 'TRIP', 'curr_sub_menu' => 'TRIP', 'inbox_count' => $this->usr->getInbox()],
             'content_data' => [
                 'module_name' => 'Edit Trip Request',
-                'attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST','att.att_ref' => $trip['tr_id']]),
+                'attachments' => $this->utl->getAttachments(NULL, ['att.att_type' => 'TRIP_REQUEST', 'att.att_ref' => $trip['tr_id']]),
                 'trip' => $trip,
                 'is_my_application' => $this->usr->user_id == $trip['tr_usr_id'] ? TRUE : FALSE,
-                'can_approve' => FALSE,//$this->usr->user_ad_name == $trip['ap_ad_name'] ? TRUE : FALSE
+                'can_approve' => FALSE, //$this->usr->user_ad_name == $trip['ap_ad_name'] ? TRUE : FALSE
             ],
             'header_data' => [],
             'footer_data' => [],
@@ -617,6 +748,51 @@ class Trip extends CI_Controller {
         ];
 
         $this->load->view('view_base', $data);
+    }
+    
+    public function  apiPdfPreviewRequest(){
+        
+        ini_set('memory_limit', '50M'); // boost the memory limit if it's low ;)
+        
+        $trip_id = $this->uri->segment(3);
+        $user_id = $this->uri->segment(4);
+        
+        
+        $user = $this->usr->getUserInfo($user_id, 'ID');
+        
+        if(!$user){
+            cus_json_error('Access denied');
+        }
+
+        $trip = $this->trip->getTripRequests(NULL, ['tr.tr_id' => $trip_id], 1);
+
+        if (!$trip) {
+            // trip request was not found so redirect back
+            cus_json_error('Trip request was not found or may have been removed from the system');
+        }
+
+        $time = date('Y-m-d H:i:s');
+        $data = [
+            'trip' => $trip
+        ];
+
+        $html = $this->load->view('export/view_export_pdf_trip_request', $data, true); // render the view into HTML
+
+        $this->load->library('pdf');
+
+        $pdf = $this->pdf->load('c', 'A4');
+
+        //$pdf->SetWatermarkImage(base_url(). 'assets/img/approved.png');
+        //$pdf->showWatermarkImage = true;
+
+        $pdf->SetFooter(SYSTEM_NAME . ' - Printed by ' . ucwords($user['full_name']) . '<br/>' . cus_nice_timestamp($time) . '|{PAGENO}|Powered By Noxyt Software Solution <br/>www.noxyt.com'); // Add a footer for good measure ;)
+
+        $pdf->WriteHTML($html); // write the HTML into the PDF
+
+        $pdf->Output();
+        return;
+        
+        
     }
 
     public function pdfPreviewTrip() {
